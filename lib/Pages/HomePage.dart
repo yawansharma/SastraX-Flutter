@@ -56,6 +56,8 @@ class _HomePageState extends State<HomePage> {
             MenuBarTile(name : 'L O G O U T ' , targetPage : LoginPage()),
             const SizedBox(height : 5),
             MenuBarTile(name: 'H E L L O', targetPage: LoginPage()),
+            const SizedBox(height : 5),
+            MenuBarTile(name: 'H E L L O', targetPage: LoginPage()),
           ],
         )
         )

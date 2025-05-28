@@ -60,7 +60,19 @@ class _HomePageState extends State<HomePage> {
             MenuBarTile(name: 'H E L L O', targetPage: LoginPage()),
           ],
         )
-        )
+        ),
+        body: Column(
+          children: [
+            SizedBox(height: 30),
+            Center(
+              child: Container(
+                height: 80,
+                width: 370,
+                color: Colors.deepPurpleAccent,
+              ),
+            )
+          ],
+        ),
       );
   }
 }

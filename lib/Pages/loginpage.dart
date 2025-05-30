@@ -96,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  'Welcome to SastragiX',
+                  'Welcome to SastraX',
                   style: GoogleFonts.lato(
                     textStyle: const TextStyle(
                       fontSize: 20,

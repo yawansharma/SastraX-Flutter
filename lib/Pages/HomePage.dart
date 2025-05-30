@@ -14,13 +14,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final attendanceWidgets = [
-    AttendanceBar(subjectName: 'Operating System', attendancePercent: 1.0),
-    AttendanceBar(subjectName: 'Data Base Management System', attendancePercent: 0.72),
-    AttendanceBar(subjectName: 'Computer Organisationa and Architecture', attendancePercent: 0.91),
-    AttendanceBar(subjectName: 'Methods for Applied Mathematics', attendancePercent: 0.91)
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,12 +171,15 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        ...attendanceWidgets
-                            .map((bar) => Padding(
+                        ...[
+                          AttendanceBar(subjectName: 'Operating System', attendancePercent: 1.0),
+                          AttendanceBar(subjectName: 'Data Base Management System', attendancePercent: 0.72),
+                          AttendanceBar(subjectName: 'Computer Organisationa and Architecture', attendancePercent: 0.91),
+                          AttendanceBar(subjectName: 'Methods for Applied Mathematics', attendancePercent: 0.91),
+                        ].map((bar) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: bar,
-                        ))
-                            .toList(),
+                        )),
                       ],
                     ),
                   ),

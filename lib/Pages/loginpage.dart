@@ -3,6 +3,8 @@ import 'package:sastra_x/Components/TextUserPassField.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sastra_x/Pages/HomePage.dart';
 import 'package:sastra_x/UI/LoginUI.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -17,16 +19,20 @@ class _LoginPageState extends State<LoginPage> {
   String? userErrorMessage;
   String? passwordErrorMessage;
   String? captchaErrorMessage;
+  String? captchaUrl;
 
   @override
   void initState() {
     super.initState();
 
+    // Fetch the CAPTCHA initially
+    fetchCaptcha();
+
     // Add listeners to clear error messages as the user types
     userController.addListener(() {
       setState(() {
         if (userController.text.isNotEmpty) {
-          userErrorMessage = null; // Clear error when typing starts
+          userErrorMessage = null;
         }
       });
     });
@@ -34,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
     passwordController.addListener(() {
       setState(() {
         if (passwordController.text.isNotEmpty) {
-          passwordErrorMessage = null; // Clear error when typing starts
+          passwordErrorMessage = null;
         }
       });
     });
@@ -42,21 +48,35 @@ class _LoginPageState extends State<LoginPage> {
     captchaController.addListener(() {
       setState(() {
         if (captchaController.text.isNotEmpty) {
-          captchaErrorMessage = null; // Clear error when typing starts
+          captchaErrorMessage = null;
         }
       });
     });
   }
 
+  Future<void> fetchCaptcha() async {
+    try {
+      final response = await http.get(Uri.parse('https://your-api.com/captcha'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          captchaUrl = '${data['captcha_url']}?ts=${DateTime.now().millisecondsSinceEpoch}';
+        });
+      } else {
+        print('Failed to load CAPTCHA');
+      }
+    } catch (e) {
+      print('Error fetching CAPTCHA: $e');
+    }
+  }
+
   void _validateFields() {
     setState(() {
-      // Reset error messages before validation
       userErrorMessage = null;
       passwordErrorMessage = null;
       captchaErrorMessage = null;
     });
 
-    // Check if fields are empty
     if (userController.text.isEmpty) {
       setState(() {
         userErrorMessage = 'This field cannot be empty';
@@ -75,9 +95,10 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
 
-    // If no errors, proceed with login
-    if (userErrorMessage == null && passwordErrorMessage == null && captchaErrorMessage == null) {
-      Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
+    if (userErrorMessage == null &&
+        passwordErrorMessage == null &&
+        captchaErrorMessage == null) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
     }
   }
 
@@ -125,14 +146,14 @@ class _LoginPageState extends State<LoginPage> {
                 controller: userController,
                 hintText: "Register Number",
                 passObscure: false,
-                errorText: userErrorMessage, // Pass error message
+                errorText: userErrorMessage,
               ),
               const SizedBox(height: 20),
               TextUserPassField(
                 controller: passwordController,
                 hintText: "Password",
                 passObscure: true,
-                errorText: passwordErrorMessage, // Pass error message
+                errorText: passwordErrorMessage,
               ),
               const SizedBox(height: 30),
               Row(
@@ -141,39 +162,51 @@ class _LoginPageState extends State<LoginPage> {
                     height: 20,
                     width: 10,
                   ),
-                  Container(
-                    height: 60,
-                    width: 120,
-                    color: Colors.deepPurpleAccent,
+                  // CAPTCHA image container
+                  captchaUrl != null
+                      ? Image.network(
+                          captchaUrl!,
+                          height: 60,
+                          width: 120,
+                          fit: BoxFit.fill,
+                        )
+                      : Container(
+                          height: 60,
+                          width: 120,
+                          color: Colors.deepPurpleAccent,
+                        ),
+                  IconButton(
+                    onPressed: fetchCaptcha,
+                    icon: const Icon(Icons.refresh, size: 30),
                   ),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.refresh, size: 30)),
                   Expanded(
                     child: TextUserPassField(
                       controller: captchaController,
                       hintText: "Captcha",
                       passObscure: false,
-                      errorText: captchaErrorMessage, // Pass error message
+                      errorText: captchaErrorMessage,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               Center(
-                child: ElevatedButton(onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
-                },style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurpleAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  )
-                ), child: Text("L O G I N" , style: GoogleFonts.lato(
-                  fontWeight: FontWeight.bold ,
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-                ),
+                child: ElevatedButton(
+                  onPressed: _validateFields,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Text(
+                    "L O G I N",
+                    style: GoogleFonts.lato(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                  ),
                 ),
               ),
             ],

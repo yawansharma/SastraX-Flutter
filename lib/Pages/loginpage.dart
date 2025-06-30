@@ -10,6 +10,46 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  void _showLoginPopup() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // set to true if you want tap outside to close
+      builder: (BuildContext context) {
+        return Center(
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 15),
+                Text(
+                  "Logging in...",
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   final userController = TextEditingController();
   final passwordController = TextEditingController();
   final captchaController = TextEditingController();
@@ -22,7 +62,6 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    // Add listeners to clear error messages as the user types
     userController.addListener(() {
       setState(() {
         if (userController.text.isNotEmpty) {
@@ -75,7 +114,6 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
 
-    // If no errors, proceed with login
     if (userErrorMessage == null && passwordErrorMessage == null && captchaErrorMessage == null) {
       Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
     }
@@ -92,21 +130,7 @@ class _LoginPageState extends State<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              LoginUI(),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Welcome to SastraX',
-                  style: GoogleFonts.lato(
-                    textStyle: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
+              const LoginUI(),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -120,62 +144,126 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
               TextUserPassField(
                 controller: userController,
                 hintText: "Register Number",
                 passObscure: false,
                 errorText: userErrorMessage, // Pass error message
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 5),
               TextUserPassField(
                 controller: passwordController,
                 hintText: "Password",
                 passObscure: true,
                 errorText: passwordErrorMessage, // Pass error message
               ),
-              const SizedBox(height: 30),
-              Row(
-                children: [
-                  const SizedBox(
-                    height: 20,
-                    width: 10,
-                  ),
-                  Container(
-                    height: 60,
-                    width: 120,
-                    color: Colors.deepPurpleAccent,
-                  ),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.refresh, size: 30)),
-                  Expanded(
-                    child: TextUserPassField(
-                      controller: captchaController,
-                      hintText: "Captcha",
-                      passObscure: false,
-                      errorText: captchaErrorMessage, // Pass error message
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               Center(
-                child: ElevatedButton(onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
-                },style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurpleAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  )
-                ), child: Text("L O G I N" , style: GoogleFonts.lato(
-                  fontWeight: FontWeight.bold ,
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-                ),
-                ),
-              ),
+                child: FloatingActionButton(onPressed: () {
+                  if (userController.text.isEmpty || passwordController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please enter Register Number and Password'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  } else {
+                    // Show CAPTCHA dialog
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Center(
+                          child: Material(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              constraints: BoxConstraints(maxWidth: 250),
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[100],
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      width: 110,
+                                      height: 50,
+                                      color: Colors.black,
+                                    ),
+                                    const SizedBox(height: 15),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: TextField(
+                                        controller: captchaController,
+                                        decoration: InputDecoration(
+                                          hintText: "Enter CAPTCHA",
+                                          hintStyle: TextStyle(fontSize: 12),
+                                          contentPadding: EdgeInsets.symmetric(
+                                            vertical: 10,
+                                            horizontal: 12,
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                            borderSide: BorderSide(color: Colors.grey.shade300),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                            borderSide: BorderSide(color: Colors.grey.shade600),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    FloatingActionButton.extended(
+                                      onPressed: () {
+                                        if (captchaController.text.isEmpty) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Please enter CAPTCHA'),
+                                              backgroundColor: Colors.redAccent,
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        Navigator.pop(context); // close the dialog
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => HomePage()),
+                                        );
+                                      },
+                                      label: Text(
+                                        "S U B M I T",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.blue.shade400,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+                  backgroundColor: Colors.blue,
+                  splashColor: Colors.blue,
+                child: Text("L O G I N " , style : GoogleFonts.lato(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 10,
+                )),
+                  ),
+              )
             ],
           ),
         ),

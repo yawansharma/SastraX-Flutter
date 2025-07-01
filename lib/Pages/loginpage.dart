@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:sastra_x/Components/TextUserPassField.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sastra_x/Pages/HomePage.dart';
 import 'package:sastra_x/UI/LoginUI.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,46 +13,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  void _showLoginPopup() {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // set to true if you want tap outside to close
-      builder: (BuildContext context) {
-        return Center(
-          child: Container(
-            width: 200,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 15),
-                Text(
-                  "Logging in...",
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   final userController = TextEditingController();
   final passwordController = TextEditingController();
   final captchaController = TextEditingController();
@@ -63,59 +26,83 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
 
     userController.addListener(() {
-      setState(() {
-        if (userController.text.isNotEmpty) {
-          userErrorMessage = null; // Clear error when typing starts
-        }
-      });
+      if (userController.text.isNotEmpty) {
+        setState(() => userErrorMessage = null);
+      }
     });
 
     passwordController.addListener(() {
-      setState(() {
-        if (passwordController.text.isNotEmpty) {
-          passwordErrorMessage = null; // Clear error when typing starts
-        }
-      });
+      if (passwordController.text.isNotEmpty) {
+        setState(() => passwordErrorMessage = null);
+      }
     });
 
     captchaController.addListener(() {
-      setState(() {
-        if (captchaController.text.isNotEmpty) {
-          captchaErrorMessage = null; // Clear error when typing starts
-        }
-      });
+      if (captchaController.text.isNotEmpty) {
+        setState(() => captchaErrorMessage = null);
+      }
     });
   }
 
-  void _validateFields() {
-    setState(() {
-      // Reset error messages before validation
-      userErrorMessage = null;
-      passwordErrorMessage = null;
-      captchaErrorMessage = null;
-    });
-
-    // Check if fields are empty
-    if (userController.text.isEmpty) {
-      setState(() {
-        userErrorMessage = 'This field cannot be empty';
-      });
-    }
-
-    if (passwordController.text.isEmpty) {
-      setState(() {
-        passwordErrorMessage = 'This field cannot be empty';
-      });
-    }
-
+  Future<void> _validateCaptcha() async {
     if (captchaController.text.isEmpty) {
-      setState(() {
-        captchaErrorMessage = 'This field cannot be empty';
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter CAPTCHA'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
     }
 
-    if (userErrorMessage == null && passwordErrorMessage == null && captchaErrorMessage == null) {
-      Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
+    try {
+      final response = await http.post(
+        Uri.parse('https://firewire-logs-brooklyn-rough.trycloudflare.com/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          // Since you said no username/password needed to verify captcha alone,
+          // send dummy values or adjust your backend accordingly
+          'regno': 'dummy',
+          'pwd': 'dummy',
+          'captcha': captchaController.text.trim(),
+        }),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Success: close dialog and go to HomePage
+        Navigator.pop(context);
+        Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage()));
+      } else {
+        // Attempt to decode error message JSON
+        try {
+          final result = jsonDecode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Captcha verification failed'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        } catch (e) {
+          // If decoding fails, show raw response
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${response.body}'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Network or unexpected error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Network or server error: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -124,125 +111,131 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const LoginUI(),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Enter your Login Credentials',
-                  style: GoogleFonts.lato(
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                    ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const LoginUI(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Enter your Login Credentials',
+                style: GoogleFonts.lato(
+                  textStyle: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
                   ),
                 ),
               ),
-              TextUserPassField(
-                controller: userController,
-                hintText: "Register Number",
-                passObscure: false,
-                errorText: userErrorMessage, // Pass error message
-              ),
-              const SizedBox(height: 5),
-              TextUserPassField(
-                controller: passwordController,
-                hintText: "Password",
-                passObscure: true,
-                errorText: passwordErrorMessage, // Pass error message
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: FloatingActionButton(onPressed: () {
+            ),
+            TextUserPassField(
+              controller: userController,
+              hintText: "Register Number",
+              passObscure: false,
+              errorText: userErrorMessage,
+            ),
+            const SizedBox(height: 5),
+            TextUserPassField(
+              controller: passwordController,
+              hintText: "Password",
+              passObscure: true,
+              errorText: passwordErrorMessage,
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: FloatingActionButton(
+                onPressed: () {
                   if (userController.text.isEmpty || passwordController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('Please enter Register Number and Password'),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
-                  } else {
-                    // Show CAPTCHA dialog
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Center(
-                          child: Material(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              constraints: BoxConstraints(maxWidth: 250),
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[100],
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: SingleChildScrollView(
+                    return;
+                  }
+
+                  String captchaUrl =
+                      'https://firewire-logs-brooklyn-rough.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return StatefulBuilder(
+                        builder: (BuildContext context, StateSetter setDialogState) {
+                          return Center(
+                            child: Material(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                constraints: const BoxConstraints(maxWidth: 290),
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[100],
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     const SizedBox(height: 10),
-                                    Container(
-                                      width: 110,
-                                      height: 50,
-                                      color: Colors.black,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 180,
+                                          height: 50,
+                                          child: CachedNetworkImage(
+                                            imageUrl: captchaUrl,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) => const Center(
+                                              child: SizedBox(
+                                                height: 20,
+                                                width: 20,
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              ),
+                                            ),
+                                            errorWidget: (context, url, error) => Container(
+                                              color: Colors.red,
+                                              child: const Center(
+                                                child: Text(
+                                                  "Error",
+                                                  style: TextStyle(color: Colors.white),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () {
+                                            setDialogState(() {
+                                              captchaUrl =
+                                              'https://firewire-logs-brooklyn-rough.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+                                            });
+                                          },
+                                          icon: const Icon(Icons.refresh),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 15),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: TextField(
-                                        controller: captchaController,
-                                        decoration: InputDecoration(
-                                          hintText: "Enter CAPTCHA",
-                                          hintStyle: TextStyle(fontSize: 12),
-                                          contentPadding: EdgeInsets.symmetric(
-                                            vertical: 10,
-                                            horizontal: 12,
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(10),
-                                            borderSide: BorderSide(color: Colors.grey.shade300),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(10),
-                                            borderSide: BorderSide(color: Colors.grey.shade600),
-                                          ),
+                                    TextField(
+                                      controller: captchaController,
+                                      decoration: InputDecoration(
+                                        hintText: "Enter CAPTCHA",
+                                        hintStyle: const TextStyle(fontSize: 12),
+                                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(color: Colors.grey.shade300),
                                         ),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
                                     FloatingActionButton.extended(
-                                      onPressed: () {
-                                        if (captchaController.text.isEmpty) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Please enter CAPTCHA'),
-                                              backgroundColor: Colors.redAccent,
-                                            ),
-                                          );
-                                          return;
-                                        }
-
-                                        Navigator.pop(context); // close the dialog
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => HomePage()),
-                                        );
-                                      },
-                                      label: Text(
+                                      onPressed: _validateCaptcha,
+                                      label: const Text(
                                         "S U B M I T",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                       ),
                                       backgroundColor: Colors.blue.shade400,
                                     ),
@@ -250,22 +243,21 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  }
+                          );
+                        },
+                      );
+                    },
+                  );
                 },
-                  backgroundColor: Colors.blue,
-                  splashColor: Colors.blue,
-                child: Text("L O G I N " , style : GoogleFonts.lato(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 10,
-                )),
-                  ),
-              )
-            ],
-          ),
+                backgroundColor: Colors.blue,
+                splashColor: Colors.blue,
+                child: Text(
+                  "L O G I N ",
+                  style: GoogleFonts.lato(fontWeight: FontWeight.w900, fontSize: 10),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

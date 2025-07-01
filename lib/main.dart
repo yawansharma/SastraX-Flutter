@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:device_preview/device_preview.dart';
-import 'package:sastra_x/Pages/loginpage.dart';
+import 'package:provider/provider.dart';
+import 'models/theme_model.dart';
+import 'pages/home_page.dart';
 
 void main() {
-  runApp(
-   // DevicePreview(
-     // enabled: !bool.fromEnvironment('dart.vm.product'),
-      //builder: (context) => const MyApp(),
-    //),
-    const MyApp(),
-  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      builder: DevicePreview.appBuilder,
-      locale: DevicePreview.locale(context),
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      home: LoginPage(),
+    return ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'SASTRAX Student App',
+            theme: themeProvider?.currentTheme,
+            home: HomePage(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
+      ),
     );
   }
 }

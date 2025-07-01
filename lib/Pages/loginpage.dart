@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:sastra_x/Components/TextUserPassField.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sastra_x/Pages/HomePage.dart';
+import 'package:sastra_x/Pages/home_page.dart';
 import 'package:sastra_x/UI/LoginUI.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;

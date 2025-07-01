@@ -21,6 +21,9 @@ class _LoginPageState extends State<LoginPage> {
   String? passwordErrorMessage;
   String? captchaErrorMessage;
 
+  String captchaUrl =
+      'https://consulting-guatemala-optional-reload.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+
   @override
   void initState() {
     super.initState();
@@ -57,13 +60,11 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://firewire-logs-brooklyn-rough.trycloudflare.com/login'),
+        Uri.parse('https://consulting-guatemala-optional-reload.trycloudflare.com/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          // Since you said no username/password needed to verify captcha alone,
-          // send dummy values or adjust your backend accordingly
-          'regno': 'dummy',
-          'pwd': 'dummy',
+          'regno': userController.text.trim(),
+          'pwd': passwordController.text.trim(),
           'captcha': captchaController.text.trim(),
         }),
       );
@@ -72,11 +73,9 @@ class _LoginPageState extends State<LoginPage> {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        // Success: close dialog and go to HomePage
         Navigator.pop(context);
         Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage()));
       } else {
-        // Attempt to decode error message JSON
         try {
           final result = jsonDecode(response.body);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -86,7 +85,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
         } catch (e) {
-          // If decoding fails, show raw response
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error: ${response.body}'),
@@ -96,7 +94,6 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     } catch (e) {
-      // Network or unexpected error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Network or server error: $e'),
@@ -104,6 +101,126 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     }
+  }
+
+  void _showCaptchaDialog() {
+    captchaUrl =
+    'https://consulting-guatemala-optional-reload.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+    captchaController.clear();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Center(
+              child: Material(
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 330),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[100],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 60,
+                        width: double.infinity,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Center - CAPTCHA image
+                            Center(
+                              child: SizedBox(
+                                width: 180,
+                                height: 50,
+                                child: CachedNetworkImage(
+                                  imageUrl: captchaUrl,
+                                  fit: BoxFit.contain,
+                                  placeholder: (context, url) => const Center(
+                                    child: SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => Container(
+                                    color: Colors.red,
+                                    child: const Center(
+                                      child: Text(
+                                        "Error",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Back icon
+                            Positioned(
+                              left: 0,
+                              child: IconButton(
+                                icon: const Icon(Icons.arrow_back_ios_new),
+                                onPressed: () {
+                                  captchaController.clear();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                            // Refresh icon
+                            Positioned(
+                              right: 0,
+                              child: IconButton(
+                                icon: const Icon(Icons.refresh),
+                                onPressed: () {
+                                  captchaController.clear();
+                                  setDialogState(() {
+                                    captchaUrl =
+                                    'https://consulting-guatemala-optional-reload.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      TextField(
+                        controller: captchaController,
+                        decoration: InputDecoration(
+                          hintText: "Enter CAPTCHA",
+                          hintStyle: const TextStyle(fontSize: 12),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      FloatingActionButton.extended(
+                        onPressed: _validateCaptcha,
+                        label: const Text(
+                          "S U B M I T",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        backgroundColor: Colors.blue.shade400,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -154,100 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                     );
                     return;
                   }
-
-                  String captchaUrl =
-                      'https://firewire-logs-brooklyn-rough.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
-
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return StatefulBuilder(
-                        builder: (BuildContext context, StateSetter setDialogState) {
-                          return Center(
-                            child: Material(
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                constraints: const BoxConstraints(maxWidth: 290),
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[100],
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const SizedBox(height: 10),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 180,
-                                          height: 50,
-                                          child: CachedNetworkImage(
-                                            imageUrl: captchaUrl,
-                                            fit: BoxFit.cover,
-                                            placeholder: (context, url) => const Center(
-                                              child: SizedBox(
-                                                height: 20,
-                                                width: 20,
-                                                child: CircularProgressIndicator(strokeWidth: 2),
-                                              ),
-                                            ),
-                                            errorWidget: (context, url, error) => Container(
-                                              color: Colors.red,
-                                              child: const Center(
-                                                child: Text(
-                                                  "Error",
-                                                  style: TextStyle(color: Colors.white),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        IconButton(
-                                          onPressed: () {
-                                            setDialogState(() {
-                                              captchaUrl =
-                                              'https://firewire-logs-brooklyn-rough.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
-                                            });
-                                          },
-                                          icon: const Icon(Icons.refresh),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 15),
-                                    TextField(
-                                      controller: captchaController,
-                                      decoration: InputDecoration(
-                                        hintText: "Enter CAPTCHA",
-                                        hintStyle: const TextStyle(fontSize: 12),
-                                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                          borderSide: BorderSide(color: Colors.grey.shade300),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    FloatingActionButton.extended(
-                                      onPressed: _validateCaptcha,
-                                      label: const Text(
-                                        "S U B M I T",
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                      ),
-                                      backgroundColor: Colors.blue.shade400,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
+                  _showCaptchaDialog();
                 },
                 backgroundColor: Colors.blue,
                 splashColor: Colors.blue,

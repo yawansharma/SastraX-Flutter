@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sastra_x/Components/AttendanceBar.dart';
 import 'package:sastra_x/Components/MenuBarTile.dart';
 import 'package:sastra_x/Pages/InternalPage.dart';
+import 'package:sastra_x/Pages/MessMenuPage.dart';
 import 'package:sastra_x/Pages/loginpage.dart';
 
 class HomePage extends StatefulWidget {
@@ -63,9 +64,9 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 5),
             MenuBarTile(name: 'L O G O U T ', targetPage: LoginPage()),
             const SizedBox(height: 5),
-            MenuBarTile(name: 'H E L L O', targetPage: LoginPage()),
+            MenuBarTile(name: 'F E E ', targetPage: LoginPage()),
             const SizedBox(height: 5),
-            MenuBarTile(name: 'B Y E', targetPage: LoginPage()),
+            MenuBarTile(name: 'M E S S  M E N U ', targetPage: MessMenuPage()),
           ],
         ),
       ),
@@ -176,6 +177,7 @@ class _HomePageState extends State<HomePage> {
                           AttendanceBar(subjectName: 'Data Base Management System', attendancePercent: 0.72),
                           AttendanceBar(subjectName: 'Computer Organisationa and Architecture', attendancePercent: 0.91),
                           AttendanceBar(subjectName: 'Methods for Applied Mathematics', attendancePercent: 0.91),
+                          AttendanceBar(subjectName: 'Data Structures', attendancePercent: 0.71),
                         ].map((bar) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: bar,

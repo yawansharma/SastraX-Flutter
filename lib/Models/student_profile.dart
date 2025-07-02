@@ -12,11 +12,12 @@ class StudentProfile {
   });
 
   factory StudentProfile.fromJson(Map<String, dynamic> json) {
+    final profile = json['profileData'] ?? {};
     return StudentProfile(
-      name: json['name'],
-      regNo: json['regNo'],
-      department: json['department'],
-      semester: json['semester'],
+      name: profile['name'] ?? 'Unknown',
+      regNo: profile['regNo'] ?? 'Unknown',
+      department: profile['department'] ?? 'Unknown',
+      semester: profile['semester'] ?? 'Unknown',
     );
   }
 }

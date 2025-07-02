@@ -34,7 +34,8 @@ class _ProfilePageState extends State<ProfilePage> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
+                debugPrint('Profile error: ${snapshot.error}');
+                return Center(child: Text('Error: ${snapshot.error.toString()}'));
               }
 
               final student = snapshot.data!;
@@ -78,16 +79,21 @@ class _ProfilePageState extends State<ProfilePage> {
                               ],
                             ),
                             child: ClipOval(
-                              child: Icon(
-                                Icons.person,
-                                size: 60,
-                                color: themeProvider.isDarkMode ? Colors.black : const Color(0xFF1e3a8a),
+                              child: Image.network(
+                                // Bypass cache with timestamp
+                                'https://holiday-om-defence-promo.trycloudflare.com/profilePic?${DateTime.now().millisecondsSinceEpoch}',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Icon(
+                                  Icons.person,
+                                  size: 80,
+                                  color: themeProvider.isDarkMode ? Colors.black : const Color(0xFF1e3a8a),
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(height: 15),
                           Text(
-                            student.name,
+                            student.name ?? "Name Not Available",
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -96,7 +102,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            student.regNo,
+                            student.regNo ?? "",
                             style: TextStyle(
                               fontSize: 16,
                               color: themeProvider.isDarkMode
@@ -115,28 +121,28 @@ class _ProfilePageState extends State<ProfilePage> {
                         children: [
                           _buildProfileCard(
                               'Department',
-                              student.department,
+                              student.department ?? "",
                               Icons.school,
                               themeProvider.primaryColor,
                               themeProvider),
                           const SizedBox(height: 15),
                           _buildProfileCard(
                               'Semester',
-                              student.semester,
+                              student.semester ?? "",
                               Icons.calendar_today,
                               Colors.green,
                               themeProvider),
                           const SizedBox(height: 15),
                           _buildProfileCard(
                               'Batch',
-                              _getBatch(student.regNo , student.department),
+                              _getBatch(student.regNo ?? "", student.department ?? ""),
                               Icons.group,
                               Colors.orange,
                               themeProvider),
                           const SizedBox(height: 15),
                           _buildProfileCard(
                               'Email',
-                              _getEmail(student.regNo),
+                              _getEmail(student.regNo ?? ""),
                               Icons.email,
                               themeProvider.primaryColor,
                               themeProvider),
@@ -189,9 +195,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
     return "Unknown";
   }
-
-
-
 
   Widget _buildProfileCard(String title, String value, IconData icon,
       Color color, ThemeProvider themeProvider) {

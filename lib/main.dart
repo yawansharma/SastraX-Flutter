@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'Pages/loginpage.dart';
 import 'models/theme_model.dart';
 import 'pages/home_page.dart';
 
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'SASTRAX Student App',
             theme: themeProvider?.currentTheme,
-            home: HomePage(),
+            home: LoginPage(),
             debugShowCheckedModeBanner: false,
           );
         },

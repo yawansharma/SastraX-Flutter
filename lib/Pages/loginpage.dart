@@ -21,12 +21,13 @@ class _LoginPageState extends State<LoginPage> {
   String? passwordErrorMessage;
   String? captchaErrorMessage;
 
-  String captchaUrl =
-      'https://consulting-guatemala-optional-reload.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+  String captchaBaseUrl = 'https://holiday-om-defence-promo.trycloudflare.com';
+  late String captchaUrl;
 
   @override
   void initState() {
     super.initState();
+    _refreshCaptcha();
 
     userController.addListener(() {
       if (userController.text.isNotEmpty) {
@@ -47,7 +48,14 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  void _refreshCaptcha() {
+    setState(() {
+      captchaUrl = '$captchaBaseUrl/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+    });
+  }
+
   Future<void> _validateCaptcha() async {
+    FocusScope.of(context).unfocus();
     if (captchaController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -60,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://consulting-guatemala-optional-reload.trycloudflare.com/login'),
+        Uri.parse('$captchaBaseUrl/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'regno': userController.text.trim(),
@@ -69,29 +77,20 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
-        Navigator.pop(context);
-        Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage()));
+        Navigator.pop(context); // Close CAPTCHA dialog
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => HomePage(regNo: userController.text)),
+        );
       } else {
-        try {
-          final result = jsonDecode(response.body);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Captcha verification failed'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${response.body}'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-        }
+        final result = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Captcha verification failed'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -104,8 +103,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showCaptchaDialog() {
-    captchaUrl =
-    'https://consulting-guatemala-optional-reload.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+    _refreshCaptcha();
     captchaController.clear();
 
     showDialog(
@@ -133,7 +131,6 @@ class _LoginPageState extends State<LoginPage> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            // Center - CAPTCHA image
                             Center(
                               child: SizedBox(
                                 width: 180,
@@ -160,7 +157,6 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                             ),
-                            // Back icon
                             Positioned(
                               left: 0,
                               child: IconButton(
@@ -171,7 +167,6 @@ class _LoginPageState extends State<LoginPage> {
                                 },
                               ),
                             ),
-                            // Refresh icon
                             Positioned(
                               right: 0,
                               child: IconButton(
@@ -179,8 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                                 onPressed: () {
                                   captchaController.clear();
                                   setDialogState(() {
-                                    captchaUrl =
-                                    'https://consulting-guatemala-optional-reload.trycloudflare.com/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+                                    captchaUrl = '$captchaBaseUrl/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
                                   });
                                 },
                               ),
@@ -281,6 +275,16 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
+            // (Optional) Direct navigation button for testing
+            Center(
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(regNo: userController.text)));
+                },
+                mini: true,
+                child: Icon(Icons.arrow_forward),
+              ),
+            )
           ],
         ),
       ),

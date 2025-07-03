@@ -4,6 +4,7 @@ import '../models/theme_model.dart';
 import '../components/theme_toggle_button.dart';
 import '../components/neon_container.dart';
 import '../components/attendance_pie_chart.dart';
+import '../components/fee_due_card.dart';
 import 'profile_page.dart';
 import 'calendar_page.dart';
 import 'community_page.dart';
@@ -12,21 +13,22 @@ import 'mess_menu_page.dart';
 import 'more_options_page.dart';
 
 class HomePage extends StatefulWidget {
-  final String regNo ;
+  final String regNo;
   const HomePage({Key? key, required this.regNo}) : super(key: key);
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
-  late List<Widget> _pages;
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
     _pages = [
-      DashboardScreen(),
+      const DashboardScreen(),
       CalendarPage(),
       CommunityPage(),
       MessMenuPage(),
@@ -37,83 +39,66 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return Scaffold(
-          backgroundColor: themeProvider.isDarkMode
-              ? AppTheme.darkBackground
-              : AppTheme.lightBackground,
-          appBar: AppBar(
-            title: Text(
-              'SASTRAX',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: themeProvider.isDarkMode
-                    ? AppTheme.neonBlue
-                    : Colors.white,
+      builder: (context, theme, child) => Scaffold(
+        backgroundColor: theme.isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: Image.asset('assets/icon/LogoIcon.png'),
+          title: const Text('SastraX', style: TextStyle(fontWeight: FontWeight.bold)),
+          centerTitle: true,
+          backgroundColor: theme.isDarkMode ? AppTheme.darkBackground : AppTheme.primaryBlue,
+          elevation: 0,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: ThemeToggleButton(
+                isDarkMode: theme.isDarkMode,
+                onToggle: theme.toggleTheme,
               ),
             ),
-            backgroundColor: themeProvider.isDarkMode
-                ? AppTheme.darkBackground
-                : AppTheme.primaryBlue,
-            elevation: 0,
-            actions: [
-              Padding(
-                padding: EdgeInsets.only(right: 16),
-                child: ThemeToggleButton(
-                  isDarkMode: themeProvider.isDarkMode,
-                  onToggle: themeProvider.toggleTheme,
-                ),
-              ),
-            ],
-          ),
-          body: _pages[_currentIndex],
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            backgroundColor: themeProvider.isDarkMode
-                ? AppTheme.darkSurface
-                : Colors.white,
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: themeProvider.isDarkMode
-                ? AppTheme.neonBlue
-                : AppTheme.primaryBlue,
-            unselectedItemColor: themeProvider.isDarkMode
-                ? Colors.grey
-                : Colors.grey[600],
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_today),
-                label: 'Calendar',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.people),
-                label: 'Community',
-              ),
-                  BottomNavigationBarItem( 
-                icon: Icon(Icons.restaurant),
-                label: 'Mess Menu',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
-          ),
-        );
-      },
+          ],
+        ),
+        body: _pages[_currentIndex],
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
+          selectedItemColor: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
+          unselectedItemColor: Colors.grey,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendar'),
+            BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Community'),
+            BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Mess Menu'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _showFeeDue = false;
+
+  void _toggleFee() {
+    setState(() {
+      _showFeeDue = !_showFeeDue;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Provider.of<ThemeProvider>(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -123,39 +108,109 @@ class DashboardScreen extends StatelessWidget {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 30,
-                  backgroundColor: themeProvider.isDarkMode
-                      ? AppTheme.neonBlue
-                      : AppTheme.primaryBlue,
-                  child: Icon(
-                    Icons.person,
-                    color: themeProvider.isDarkMode
-                        ? Colors.black
-                        : Colors.white,
-                    size: 30,
-                  ),
+                  radius: 28,
+                  backgroundColor: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
+                  child: Icon(Icons.person, color: theme.isDarkMode ? Colors.black : Colors.white),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Welcome Back!',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: themeProvider.isDarkMode
-                              ? AppTheme.neonBlue
-                              : AppTheme.primaryBlue,
+                      Text('Welcome Back!',
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue)),
+                      Text('Student Dashboard',
+                          style: TextStyle(color: theme.isDarkMode ? Colors.white70 : Colors.grey[600]))
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: NeonContainer(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                    child: const AttendancePieChart(
+                      attendancePercentage: 85,
+                      attendedClasses: 85,
+                      totalClasses: 100,
+                      bunkingDaysLeft: 5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: NeonContainer(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.assignment_turned_in,
+                                        size: 28,
+                                        color: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue),
+                                    const SizedBox(height: 4),
+                                    const Text('Assignments', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    Text('12 Pending',
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: theme.isDarkMode ? Colors.white70 : Colors.grey[600])),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        'Student Dashboard',
-                        style: TextStyle(
-                          color: themeProvider.isDarkMode
-                              ? Colors.white70
-                              : Colors.grey[600],
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: _toggleFee,
+                                child: NeonContainer(
+                                  padding: const EdgeInsets.all(12),
+                                  child: _showFeeDue
+                                      ? FeeDueCard(feeDue: 5000)
+                                      : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.grade,
+                                          size: 28,
+                                          color: theme.isDarkMode
+                                              ? AppTheme.electricBlue
+                                              : Colors.orange),
+                                      const SizedBox(height: 4),
+                                      const Text('GPA',
+                                          style: TextStyle(fontWeight: FontWeight.bold)),
+                                      Text('8.5/10',
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: theme.isDarkMode
+                                                  ? Colors.white70
+                                                  : Colors.grey[600])),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -164,104 +219,20 @@ class DashboardScreen extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 20),
-          AttendancePieChart(
-            attendancePercentage: 85.0,
-            attendedClasses: 85,
-            totalClasses: 100,
-            bunkingDaysLeft: 5,
-          ),
-          SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: NeonContainer(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.assignment_turned_in,
-                        size: 40,
-                        color: themeProvider.isDarkMode
-                            ? AppTheme.neonBlue
-                            : AppTheme.primaryBlue,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Assignments',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: themeProvider.isDarkMode
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '12 Pending',
-                        style: TextStyle(
-                          color: themeProvider.isDarkMode
-                              ? Colors.white70
-                              : Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: NeonContainer(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.grade,
-                        size: 40,
-                        color: themeProvider.isDarkMode
-                            ? AppTheme.electricBlue
-                            : Colors.orange,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'GPA',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: themeProvider.isDarkMode
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '8.5/10',
-                        style: TextStyle(
-                          color: themeProvider.isDarkMode
-                              ? Colors.white70
-                              : Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           NeonContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Today\'s Schedule',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: themeProvider.isDarkMode
-                        ? AppTheme.neonBlue
-                        : AppTheme.primaryBlue,
-                  ),
-                ),
-                SizedBox(height: 16),
-                _buildScheduleItem('9:00 AM - 10:00 AM', 'Mathematics', 'Room 101', themeProvider.isDarkMode),
-                _buildScheduleItem('10:15 AM - 11:15 AM', 'Physics', 'Lab 2', themeProvider.isDarkMode),
-                _buildScheduleItem('11:30 AM - 12:30 PM', 'Computer Science', 'Room 205', themeProvider.isDarkMode),
+                Text('Today’s Schedule',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue)),
+                const SizedBox(height: 16),
+                _scheduleItem(context, '9:00 AM – 10:00 AM', 'Mathematics', 'Room 101'),
+                _scheduleItem(context, '10:15 AM – 11:15 AM', 'Physics', 'Lab 2'),
+                _scheduleItem(context, '11:30 AM – 12:30 PM', 'Computer Science', 'Room 205'),
               ],
             ),
           ),
@@ -270,38 +241,33 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScheduleItem(String time, String subject, String room, bool isDarkMode) {
+  Widget _scheduleItem(BuildContext context, String time, String subject, String room) {
+    final theme = Provider.of<ThemeProvider>(context, listen: false);
+    final dark = theme.isDarkMode;
+
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
           Container(
             width: 4,
             height: 40,
             decoration: BoxDecoration(
-              color: isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
+              color: dark ? AppTheme.neonBlue : AppTheme.primaryBlue,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  subject,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                Text(
-                  '$time • $room',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white70 : Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
+                Text(subject,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: dark ? Colors.white : Colors.black)),
+                Text('$time • $room',
+                    style: TextStyle(fontSize: 12, color: dark ? Colors.white70 : Colors.grey[600]))
               ],
             ),
           ),

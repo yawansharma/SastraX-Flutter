@@ -10,25 +10,25 @@ class AttendancePieChart extends StatelessWidget {
   final int bunkingDaysLeft;
 
   const AttendancePieChart({
-    Key? key,
+    super.key,
     required this.attendancePercentage,
     required this.attendedClasses,
     required this.totalClasses,
     required this.bunkingDaysLeft,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
+        final isDark = themeProvider.isDarkMode;
+
         return Container(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
           decoration: BoxDecoration(
-            color: themeProvider.isDarkMode
-                ? AppTheme.darkSurface
-                : Colors.white,
+            color: isDark ? AppTheme.darkSurface : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: themeProvider.isDarkMode
+            boxShadow: isDark
                 ? [
               BoxShadow(
                 color: AppTheme.neonBlue.withOpacity(0.5),
@@ -37,150 +37,74 @@ class AttendancePieChart extends StatelessWidget {
               ),
             ]
                 : [
-              BoxShadow(
+              const BoxShadow(
                 color: Colors.black12,
                 blurRadius: 8,
                 offset: Offset(0, 2),
               ),
             ],
           ),
-          child: Stack(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Background glow effect for dark mode
-              if (themeProvider.isDarkMode)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: RadialGradient(
-                        colors: [
-                          AppTheme.neonBlue.withOpacity(0.3),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
+              // Move attendance text up
+              Padding(
+                padding: const EdgeInsets.only(bottom: 40),
+                child: Text(
+                  'Attendance',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppTheme.neonBlue : AppTheme.primaryBlue,
                   ),
                 ),
+              ),
 
-              Column(
-                children: [
-                  Text(
-                    'Attendance',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: themeProvider.isDarkMode
-                          ? AppTheme.neonBlue
-                          : AppTheme.primaryBlue,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  SizedBox(
-                    height: 200,
-                    child: PieChart(
-                      PieChartData(
-                        pieTouchData: PieTouchData(enabled: false),
-                        borderData: FlBorderData(show: false),
-                        sectionsSpace: 0,
-                        centerSpaceRadius: 60,
-                        sections: [
-                          PieChartSectionData(
-                            color: themeProvider.isDarkMode
-                                ? AppTheme.neonBlue
-                                : AppTheme.primaryBlue,
-                            value: attendancePercentage,
-                            title: '${attendancePercentage.toInt()}%',
-                            radius: 50,
-                            titleStyle: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          PieChartSectionData(
-                            color: themeProvider.isDarkMode
-                                ? Colors.grey[800]!
-                                : Colors.grey[300]!,
-                            value: 100 - attendancePercentage,
-                            title: '',
-                            radius: 50,
-                          ),
-                        ],
+              // Pie chart
+              SizedBox(
+                height: 80,
+                width: 80,
+                child: PieChart(
+                  PieChartData(
+                    pieTouchData: PieTouchData(enabled: false),
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 0,
+                    centerSpaceRadius: 25,
+                    sections: [
+                      PieChartSectionData(
+                        color: isDark ? AppTheme.neonBlue : AppTheme.primaryBlue,
+                        value: attendancePercentage,
+                        title: '${attendancePercentage.toInt()}%',
+                        radius: 40,
+                        titleStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Column(
-                        children: [
-                          Text(
-                            '$attendedClasses',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: themeProvider.isDarkMode
-                                  ? AppTheme.neonBlue
-                                  : AppTheme.primaryBlue,
-                            ),
-                          ),
-                          Text(
-                            'Attended',
-                            style: TextStyle(
-                              color: themeProvider.isDarkMode
-                                  ? Colors.white70
-                                  : Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            '$totalClasses',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: themeProvider.isDarkMode
-                                  ? Colors.white
-                                  : Colors.black,
-                            ),
-                          ),
-                          Text(
-                            'Total',
-                            style: TextStyle(
-                              color: themeProvider.isDarkMode
-                                  ? Colors.white70
-                                  : Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            '$bunkingDaysLeft',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: themeProvider.isDarkMode
-                                  ? AppTheme.electricBlue
-                                  : Colors.orange,
-                            ),
-                          ),
-                          Text(
-                            'Can Skip',
-                            style: TextStyle(
-                              color: themeProvider.isDarkMode
-                                  ? Colors.white70
-                                  : Colors.grey[600],
-                            ),
-                          ),
-                        ],
+                      PieChartSectionData(
+                        color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                        value: 100 - attendancePercentage,
+                        title: '',
+                        radius: 32,
                       ),
                     ],
                   ),
+                ),
+              ),
+
+              // Push stats slightly downward
+              const SizedBox(height: 55),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildStat('Attended', '$attendedClasses',
+                      isDark ? AppTheme.neonBlue : AppTheme.primaryBlue, isDark),
+                  _buildStat('Total', '$totalClasses',
+                      isDark ? Colors.white : Colors.black, isDark),
+                  _buildStat('Can Skip', '$bunkingDaysLeft',
+                      isDark ? AppTheme.electricBlue : Colors.orange, isDark),
                 ],
               ),
             ],
@@ -189,5 +113,27 @@ class AttendancePieChart extends StatelessWidget {
       },
     );
   }
-}
 
+  Widget _buildStat(String label, String value, Color valueColor, bool dark) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: valueColor,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: dark ? Colors.white70 : Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+}

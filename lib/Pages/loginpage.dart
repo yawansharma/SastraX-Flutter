@@ -21,7 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   String? passwordErrorMessage;
   String? captchaErrorMessage;
 
-  String captchaBaseUrl = 'https://holiday-om-defence-promo.trycloudflare.com';
+  String captchaBaseUrl = 'https://sa-remainder-dp-resist.trycloudflare.com';
   late String captchaUrl;
 
   @override
@@ -275,7 +275,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            // (Optional) Direct navigation button for testing
             Center(
               child: FloatingActionButton(
                 onPressed: () {

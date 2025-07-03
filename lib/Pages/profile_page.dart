@@ -80,8 +80,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             child: ClipOval(
                               child: Image.network(
-                                // Bypass cache with timestamp
-                                'https://holiday-om-defence-promo.trycloudflare.com/profilePic?${DateTime.now().millisecondsSinceEpoch}',
+                                'https://sa-remainder-dp-resist.trycloudflare.com/profilePic?t=${DateTime.now().millisecondsSinceEpoch}',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) => Icon(
                                   Icons.person,

@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
       DashboardScreen(),
       CalendarPage(),
       CommunityPage(),
-      ProfilePage(regNo: widget.regNo),
+      ProfilePage(regNo: widget.regNo), // ✅ Now it works
     ];
   }
 

@@ -29,6 +29,7 @@ class _HomePageState extends State<HomePage> {
       DashboardScreen(),
       CalendarPage(),
       CommunityPage(),
+      MessMenuPage(),
       ProfilePage(regNo: widget.regNo),
     ];
   }
@@ -92,6 +93,10 @@ class _HomePageState extends State<HomePage> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.people),
                 label: 'Community',
+              ),
+                  BottomNavigationBarItem( 
+                icon: Icon(Icons.restaurant),
+                label: 'Mess Menu',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),

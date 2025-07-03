@@ -6,6 +6,8 @@ import 'package:sastra_x/Pages/home_page.dart';
 import 'package:sastra_x/UI/LoginUI.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../models/theme_model.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -219,6 +221,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context); // ✅ Added
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -243,19 +247,20 @@ class _LoginPageState extends State<LoginPage> {
               controller: userController,
               hintText: "Register Number",
               passObscure: false,
-              errorText: userErrorMessage,
+              errorText: userErrorMessage, // ✅ Added
             ),
             const SizedBox(height: 5),
             TextUserPassField(
               controller: passwordController,
               hintText: "Password",
               passObscure: true,
-              errorText: passwordErrorMessage,
+              errorText: passwordErrorMessage, // ✅ Added
             ),
             const SizedBox(height: 20),
             Center(
               child: FloatingActionButton(
                 onPressed: () {
+                  FocusScope.of(context).unfocus(); // Hide keyboard
                   if (userController.text.isEmpty || passwordController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

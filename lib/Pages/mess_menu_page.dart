@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/theme_model.dart';
 
 class MessMenuPage extends StatefulWidget {
@@ -9,64 +11,54 @@ class MessMenuPage extends StatefulWidget {
 
 class _MessMenuPageState extends State<MessMenuPage> {
   late PageController _pageController;
-
-  final List<Map<String, dynamic>> weeklyMenu = [
-    {
-      'Day': 'Monday',
-      'Breakfast': 'Idli, Sambar, Chutney',
-      'Lunch': 'Rice, Rasam, Cabbage Poriyal',
-      'Snacks': 'Tea, Biscuits',
-      'Dinner': 'Chapathi, Aloo Curry',
-    },
-    {
-      'Day': 'Tuesday',
-      'Breakfast': 'Dosa, Chutney, Sambar',
-      'Lunch': 'Fried Rice, Gobi Manchurian',
-      'Snacks': 'Cutlet, Tea',
-      'Dinner': 'Upma, Coconut Chutney',
-    },
-    {
-      'Day': 'Wednesday',
-      'Breakfast': 'Pongal, Vada, Sambar',
-      'Lunch': 'Sambar, Beans Poriyal, Curd',
-      'Snacks': 'Bread Pakoda, Tea',
-      'Dinner': 'Rice, Dal, Potato Fry',
-    },
-    {
-      'Day': 'Thursday',
-      'Breakfast': 'Poori, Masala',
-      'Lunch': 'Lemon Rice, Chips',
-      'Snacks': 'Vada, Tea',
-      'Dinner': 'Chapathi, Paneer Butter Masala',
-    },
-    {
-      'Day': 'Friday',
-      'Breakfast': 'Aloo Paratha, Curd',
-      'Lunch': 'Veg Biryani, Raita',
-      'Snacks': 'Samosa, Tea',
-      'Dinner': 'Rice, Tomato Dal, Bhindi Fry',
-    },
-    {
-      'Day': 'Saturday',
-      'Breakfast': 'Upma, Sambar',
-      'Lunch': 'Curd Rice, Pickle, Chips',
-      'Snacks': 'Murukku, Coffee',
-      'Dinner': 'Dosa, Onion Chutney',
-    },
-    {
-      'Day': 'Sunday',
-      'Breakfast': 'Poori, Chana Masala',
-      'Lunch': 'Paneer Pulao, Veg Kurma',
-      'Snacks': 'Cake Slice, Tea',
-      'Dinner': 'Pasta, Garlic Bread',
-    },
-  ];
+  List<dynamic> fullMenu = [];
+  List<dynamic> filteredMenu = [];
+  String selectedWeek = "1";
+  final int currentDayIndex = DateTime.now().weekday - 1;
+  final int currentWeek = ((DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays ~/ 7) % 4) + 1;
 
   @override
   void initState() {
     super.initState();
-    int currentDayIndex = DateTime.now().weekday - 1;
     _pageController = PageController(initialPage: currentDayIndex.clamp(0, 6));
+    selectedWeek = currentWeek.toString();
+    fetchMessMenu();
+  }
+
+  Future<void> fetchMessMenu() async {
+    try {
+      final response = await http.get(Uri.parse('https://instant-researcher-defend-tagged.trycloudflare.com/messMenu'));
+      if (response.statusCode == 200) {
+        setState(() {
+          fullMenu = json.decode(response.body);
+          filterMenuByWeek(selectedWeek);
+        });
+      }
+    } catch (e) {
+      print('Error fetching mess menu: $e');
+    }
+  }
+
+  void filterMenuByWeek(String week) {
+    setState(() {
+      selectedWeek = week;
+      filteredMenu = fullMenu.where((day) => day["week"] == week).toList();
+    });
+  }
+
+  String _getBackgroundImage(String title) {
+    switch (title) {
+      case 'Breakfast':
+        return 'assets/images/sunrise.jpg';
+      case 'Lunch':
+        return 'assets/images/sunshine.jpg';
+      case 'Snacks':
+        return 'assets/images/sunset.jpg';
+      case 'Dinner':
+        return 'assets/images/moon.jpg';
+      default:
+        return '';
+    }
   }
 
   @override
@@ -75,47 +67,40 @@ class _MessMenuPageState extends State<MessMenuPage> {
       builder: (context, themeProvider, child) {
         return Scaffold(
           backgroundColor: themeProvider.backgroundColor,
-          appBar: AppBar(
-            title: Text(
-              'Mess Menu',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
-              ),
-            ),
-            centerTitle: true,
-            backgroundColor: themeProvider.appBarBackgroundColor,
-            iconTheme: IconThemeData(
-              color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
-            ),
-          ),
-          body: PageView.builder(
+          body: filteredMenu.isEmpty
+              ? Center(child: CircularProgressIndicator())
+              : PageView.builder(
             controller: _pageController,
-            itemCount: weeklyMenu.length,
+            itemCount: filteredMenu.length,
             itemBuilder: (context, index) {
-              final dayMenu = weeklyMenu[index];
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ListView(
-                  children: [
-                    Center(
-                      child: Text(
-                        dayMenu['Day'],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30,
-                          color: themeProvider.textColor,
-                        ),
+              final dayMenu = filteredMenu[index];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 50),
+                  Center(
+                    child: Text(
+                      dayMenu['day'],
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
+                        color: themeProvider.textColor,
                       ),
                     ),
-                    SizedBox(height: 20),
-                    _buildMealCard('Breakfast', dayMenu['Breakfast'], themeProvider),
-                    _buildMealCard('Lunch', dayMenu['Lunch'], themeProvider),
-                    _buildMealCard('Snacks', dayMenu['Snacks'], themeProvider),
-                    _buildMealCard('Dinner', dayMenu['Dinner'], themeProvider),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 10),
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      children: [
+                        _buildMealCard('Breakfast', dayMenu['breakfast'].join(", "), themeProvider),
+                        _buildMealCard('Lunch', dayMenu['lunch'].join(", "), themeProvider),
+                        _buildMealCard('Snacks', dayMenu['snacks'].join(", "), themeProvider),
+                        _buildMealCard('Dinner', dayMenu['dinner'].join(", "), themeProvider),
+                      ],
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -127,7 +112,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
   Widget _buildMealCard(String title, String content, ThemeProvider themeProvider) {
     Color cardColor;
     IconData mealIcon;
-    
+
     switch (title) {
       case 'Breakfast':
         cardColor = themeProvider.isDarkMode ? Color(0xFFFFD93D) : Colors.orange[300]!;
@@ -152,83 +137,78 @@ class _MessMenuPageState extends State<MessMenuPage> {
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),
+      height: 170,
       decoration: BoxDecoration(
         color: themeProvider.cardBackgroundColor,
         borderRadius: BorderRadius.circular(20),
-        border: themeProvider.isDarkMode
-            ? Border.all(color: cardColor.withOpacity(0.3))
-            : null,
-        boxShadow: themeProvider.isDarkMode
-            ? [
-                BoxShadow(
-                  color: cardColor.withOpacity(0.2),
-                  blurRadius: 15,
-                  spreadRadius: 2,
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
-                ),
-              ],
+        border: themeProvider.isDarkMode ? Border.all(color: cardColor.withOpacity(0.3)) : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [cardColor, cardColor.withOpacity(0.8)],
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(
+              _getBackgroundImage(title),
+              fit: BoxFit.cover,
+              height: 170,
+              width: double.infinity,
+              color: Colors.black.withOpacity(0.4),
+              colorBlendMode: BlendMode.darken,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    mealIcon,
+                    color: themeProvider.isDarkMode ? Colors.black : Colors.white,
+                    size: 25,
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: themeProvider.isDarkMode
-                    ? [
-                        BoxShadow(
-                          color: cardColor.withOpacity(0.5),
-                          blurRadius: 10,
-                          spreadRadius: 2,
+                SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.white,
                         ),
-                      ]
-                    : null,
-              ),
-              child: Icon(
-                mealIcon,
-                color: themeProvider.isDarkMode ? Colors.black : Colors.white,
-                size: 25,
-              ),
-            ),
-            SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: themeProvider.textColor,
-                    ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        content,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 5),
-                  Text(
-                    content,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
-                      color: themeProvider.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
+                )
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

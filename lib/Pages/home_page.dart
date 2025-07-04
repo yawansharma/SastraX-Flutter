@@ -1,4 +1,3 @@
-// lib/pages/home_page.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -85,8 +84,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-/* ───────────────────────── DASHBOARD ───────────────────────── */
-
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -97,14 +94,18 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   bool showFeeDue = false;
 
-  double attendancePercent = -1; // ‑1 → loading
+  double attendancePercent = -1;
   int attendedClasses = 0;
   int totalClasses = 0;
+
+  String? cgpa;
+  bool isCgpaLoading = true;
 
   @override
   void initState() {
     super.initState();
     _fetchAttendance();
+    _fetchCGPA();
   }
 
   Future<void> _fetchAttendance() async {
@@ -113,30 +114,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final raw = data['attendanceHTML'] as String? ?? '0%';
-        // pattern matches "85.25%" and "(  105 / 120 )"
         final percentMatch = RegExp(r'(\d+(?:\.\d+)?)\s*%').firstMatch(raw);
-        final pairMatch =
-        RegExp(r'\(\s*(\d+)\s*/\s*(\d+)\s*\)').firstMatch(raw);
+        final pairMatch = RegExp(r'\(\s*(\d+)\s*/\s*(\d+)\s*\)').firstMatch(raw);
 
         setState(() {
-          attendancePercent =
-              double.tryParse(percentMatch?[1] ?? '0') ?? 0.0;
+          attendancePercent = double.tryParse(percentMatch?[1] ?? '0') ?? 0.0;
           attendedClasses = int.tryParse(pairMatch?[1] ?? '0') ?? 0;
           totalClasses = int.tryParse(pairMatch?[2] ?? '0') ?? 0;
         });
       } else {
-        setState(() => attendancePercent = 0); // still show a chart
+        setState(() => attendancePercent = 0);
       }
     } catch (e) {
-      setState(() => attendancePercent = 0); // network error, show 0%
+      setState(() => attendancePercent = 0);
     }
+  }
+
+  Future<void> _fetchCGPA() async {
+    try {
+      final res = await http.get(Uri.parse('https://dna-attitude-per-eds.trycloudflare.com/cgpa'));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final cgpaList = data['cgpaData'];
+        if (cgpaList != null && cgpaList.isNotEmpty) {
+          setState(() {
+            cgpa = cgpaList[0]['cgpa'];
+            isCgpaLoading = false;
+          });
+          return;
+        }
+      }
+    } catch (_) {}
+    setState(() {
+      cgpa = 'N/A';
+      isCgpaLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context);
 
-    // compute bunk‑able classes (75 % rule) – clamp ≥0
     final bunkLeft = totalClasses == 0
         ? 0
         : (attendancePercent / 100 * totalClasses - 0.75 * totalClasses)
@@ -147,7 +165,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          /* Welcome banner */
           NeonContainer(
             child: Row(
               children: [
@@ -155,8 +172,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   radius: 28,
                   backgroundColor:
                   theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
-                  child:
-                  Icon(Icons.person, color: theme.isDarkMode ? Colors.black : Colors.white),
+                  child: Icon(Icons.person,
+                      color: theme.isDarkMode ? Colors.black : Colors.white),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -182,12 +199,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 20),
-
-          /* Attendance + GPA / FeeDue column */
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /* PIE CARD  ---------------------------------------------------- */
               Expanded(
                 flex: 2,
                 child: NeonContainer(
@@ -203,7 +217,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              /* GPA / FeeDue toggle ------------------------------------------ */
               Expanded(
                 flex: 1,
                 child: SizedBox(
@@ -256,9 +269,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           : Colors.orange),
                                   const SizedBox(height: 4),
                                   const Text('GPA',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold)),
-                                  Text('8.5 / 10',
+                                      style: TextStyle(fontWeight: FontWeight.bold)),
+                                  isCgpaLoading
+                                      ? const SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                      : Text('$cgpa / 10',
                                       style: TextStyle(
                                           fontSize: 12,
                                           color: theme.isDarkMode
@@ -276,10 +294,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 20),
-
-          /* Today’s schedule ----------------------------------------------- */
           NeonContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +318,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /* helper for one schedule row */
   Widget _scheduleItem(BuildContext context, String time, String subject, String room) {
     final theme = Provider.of<ThemeProvider>(context, listen: false);
     final dark = theme.isDarkMode;

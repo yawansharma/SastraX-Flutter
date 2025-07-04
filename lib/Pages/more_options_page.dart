@@ -29,6 +29,12 @@ class MoreOptionsPage extends StatelessWidget {
       'color': Colors.brown,
     },
     {
+      'title': 'calculator',
+      'subtitle': 'SGPA predictor',
+      'icon': Icons.calculate_sharp,
+      'color': Colors.lightGreen,
+    },
+    {
       'title': 'Transport',
       'subtitle': 'Bus routes and schedules',
       'icon': Icons.directions_bus,

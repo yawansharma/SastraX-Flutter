@@ -4,16 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
+import '../Components/timetable_widget.dart'; // Ensure this path is correct
 import '../models/theme_model.dart';
 import '../components/theme_toggle_button.dart';
 import '../components/neon_container.dart';
 import '../components/attendance_pie_chart.dart';
 import '../components/fee_due_card.dart';
 
-import 'profile_page.dart';
+import 'profile_page.dart'; // This is the correct import for ProfilePage
 import 'calendar_page.dart';
 import 'community_page.dart';
 import 'mess_menu_page.dart';
+import 'more_options_page.dart'; // Import the MoreOptionsPage
 
 class HomePage extends StatefulWidget {
   final String regNo;
@@ -31,11 +33,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _pages = [
-      const DashboardScreen(),
+      DashboardScreen(regNo: widget.regNo), // Pass regNo to DashboardScreen
       CalendarPage(),
       CommunityPage(),
       MessMenuPage(),
-      ProfilePage(regNo: widget.regNo),
+       MoreOptionsPage(), // MoreOptionsPage is now at index 4, corresponding to the 'More' icon
     ];
   }
 
@@ -77,7 +79,7 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendar'),
             BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Community'),
             BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Mess'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+            BottomNavigationBarItem(icon: Icon(Icons.more_horiz_outlined), label: 'More'), // The 'More' icon is at index 4
           ],
         ),
       ),
@@ -88,7 +90,8 @@ class _HomePageState extends State<HomePage> {
 /* ───────────────────────── DASHBOARD ───────────────────────── */
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final String regNo; // Add regNo parameter
+  const DashboardScreen({super.key, required this.regNo}); // Update constructor
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -147,38 +150,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          /* Welcome banner */
-          NeonContainer(
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor:
-                  theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
-                  child:
-                  Icon(Icons.person, color: theme.isDarkMode ? Colors.black : Colors.white),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Welcome Back!',
-                          style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: theme.isDarkMode
-                                  ? AppTheme.neonBlue
-                                  : AppTheme.primaryBlue)),
-                      Text('Student Dashboard',
-                          style: TextStyle(
-                              color: theme.isDarkMode
-                                  ? Colors.white70
-                                  : Colors.grey[600]))
-                    ],
+          /* Welcome banner - Now tappable to ProfileScreen */
+          GestureDetector( // Wrap the entire NeonContainer for a larger tap area
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfilePage(regNo: widget.regNo)),
+              );
+            },
+            child: NeonContainer(
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor:
+                    theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
+                    child:
+                    Icon(Icons.person, color: theme.isDarkMode ? Colors.black : Colors.white),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Welcome Back!',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: theme.isDarkMode
+                                    ? AppTheme.neonBlue
+                                    : AppTheme.primaryBlue)),
+                        Text('Student Dashboard',
+                            style: TextStyle(
+                                color: theme.isDarkMode
+                                    ? Colors.white70
+                                    : Colors.grey[600]))
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -250,7 +261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(Icons.grade,
-                                      size: 28,
+                                      size: 18,
                                       color: theme.isDarkMode
                                           ? AppTheme.electricBlue
                                           : Colors.orange),
@@ -277,62 +288,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
 
-          const SizedBox(height: 20),
 
-          /* Today’s schedule ----------------------------------------------- */
-          NeonContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Today’s Schedule',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: theme.isDarkMode
-                            ? AppTheme.neonBlue
-                            : AppTheme.primaryBlue)),
-                const SizedBox(height: 16),
-                _scheduleItem(context, '9:00 AM – 10:00 AM', 'Mathematics', 'Room 101'),
-                _scheduleItem(context, '10:15 AM – 11:15 AM', 'Physics', 'Lab 2'),
-                _scheduleItem(context, '11:30 AM – 12:30 PM', 'Computer Science', 'Room 205'),
+
+          /* Today’s Timetable Section (Styled as per image) ----------------------------------------------- */
+          Container
+            (
+            decoration: BoxDecoration(
+              color: theme.isDarkMode ? AppTheme.darkSurface : Colors.white, // Background for the whole timetable section
+              borderRadius: BorderRadius.circular(15), // Overall rounded corners for the timetable section
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /* helper for one schedule row */
-  Widget _scheduleItem(BuildContext context, String time, String subject, String room) {
-    final theme = Provider.of<ThemeProvider>(context, listen: false);
-    final dark = theme.isDarkMode;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 40,
-            decoration: BoxDecoration(
-              color: dark ? AppTheme.neonBlue : AppTheme.primaryBlue,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(subject,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: dark ? Colors.white : Colors.black)),
-                Text('$time • $room',
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: dark ? Colors.white70 : Colors.grey[600]))
+
+
+                // Timetable content - The TimetableWidget is expected to contain the scrollable list of subject boxes
+                // We give it a constrained height using SizedBox to enable its internal scrolling.
+                 SizedBox
+                   (
+                  height: 400, // Adjust this height as needed to fit your design
+                  child: TimetableWidget(),
+                ),
               ],
             ),
           ),

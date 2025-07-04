@@ -77,7 +77,7 @@ class TimetableWidget extends StatelessWidget {
                 ),
               ),
               Container(
-                height: 350,
+                height: 500,
                 child: ListView.builder(
                   padding: EdgeInsets.all(16),
                   itemCount: timetable.length,

@@ -78,7 +78,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -87,13 +86,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  bool _showFeeDue = false;
-
-  void _toggleFee() {
-    setState(() {
-      _showFeeDue = !_showFeeDue;
-    });
-  }
+  bool showFeeDue = false;
 
   @override
   Widget build(BuildContext context) {
@@ -102,15 +95,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           NeonContainer(
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
-                  child: Icon(Icons.person, color: theme.isDarkMode ? Colors.black : Colors.white),
+                  backgroundColor:
+                  theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
+                  child: Icon(Icons.person,
+                      color: theme.isDarkMode ? Colors.black : Colors.white),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -121,9 +115,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue)),
+                              color: theme.isDarkMode
+                                  ? AppTheme.neonBlue
+                                  : AppTheme.primaryBlue)),
                       Text('Student Dashboard',
-                          style: TextStyle(color: theme.isDarkMode ? Colors.white70 : Colors.grey[600]))
+                          style: TextStyle(
+                              color: theme.isDarkMode
+                                  ? Colors.white70
+                                  : Colors.grey[600]))
                     ],
                   ),
                 ),
@@ -131,94 +130,108 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: NeonContainer(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                    child: const AttendancePieChart(
-                      attendancePercentage: 85,
-                      attendedClasses: 85,
-                      totalClasses: 100,
-                      bunkingDaysLeft: 5,
-                    ),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 2,
+                child: NeonContainer(
+                  padding:
+                  const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                  child: const AttendancePieChart(
+                    attendancePercentage: 85,
+                    attendedClasses: 85,
+                    totalClasses: 100,
+                    bunkingDaysLeft: 5,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  height: 240,
                   child: Column(
                     children: [
                       Expanded(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: NeonContainer(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.assignment_turned_in,
-                                        size: 28,
-                                        color: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue),
-                                    const SizedBox(height: 4),
-                                    const Text('Assignments', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('12 Pending',
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            color: theme.isDarkMode ? Colors.white70 : Colors.grey[600])),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: NeonContainer(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.assignment_turned_in,
+                                  size: 28,
+                                  color: theme.isDarkMode
+                                      ? AppTheme.neonBlue
+                                      : AppTheme.primaryBlue),
+                              const SizedBox(height: 4),
+                              const Text('Assignments',
+                                  style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text('12 Pending',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: theme.isDarkMode
+                                          ? Colors.white70
+                                          : Colors.grey[600]))
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
                       Expanded(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: _toggleFee,
-                                child: NeonContainer(
-                                  padding: const EdgeInsets.all(12),
-                                  child: _showFeeDue
-                                      ? FeeDueCard(feeDue: 5000)
-                                      : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.grade,
-                                          size: 28,
-                                          color: theme.isDarkMode
-                                              ? AppTheme.electricBlue
-                                              : Colors.orange),
-                                      const SizedBox(height: 4),
-                                      const Text('GPA',
-                                          style: TextStyle(fontWeight: FontWeight.bold)),
-                                      Text('8.5/10',
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: theme.isDarkMode
-                                                  ? Colors.white70
-                                                  : Colors.grey[600])),
-                                    ],
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              showFeeDue = !showFeeDue;
+                            });
+                          },
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: showFeeDue
+                                ? FeeDueCard(
+                              key: const ValueKey("fee"),
+                              feeDue: 12000,
+                            )
+                                : NeonContainer(
+                              key: const ValueKey("gpa"),
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.grade,
+                                      size: 28,
+                                      color: theme.isDarkMode
+                                          ? AppTheme.electricBlue
+                                          : Colors.orange),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'GPA',
+                                    style:
+                                    TextStyle(fontWeight: FontWeight.bold),
                                   ),
-                                ),
+                                  Text(
+                                    '8.5/10',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: theme.isDarkMode
+                                          ? Colors.white70
+                                          : Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+
           const SizedBox(height: 20),
           NeonContainer(
             child: Column(
@@ -228,11 +241,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue)),
+                        color: theme.isDarkMode
+                            ? AppTheme.neonBlue
+                            : AppTheme.primaryBlue)),
                 const SizedBox(height: 16),
-                _scheduleItem(context, '9:00 AM – 10:00 AM', 'Mathematics', 'Room 101'),
-                _scheduleItem(context, '10:15 AM – 11:15 AM', 'Physics', 'Lab 2'),
-                _scheduleItem(context, '11:30 AM – 12:30 PM', 'Computer Science', 'Room 205'),
+                _scheduleItem(
+                    context, '9:00 AM – 10:00 AM', 'Mathematics', 'Room 101'),
+                _scheduleItem(
+                    context, '10:15 AM – 11:15 AM', 'Physics', 'Lab 2'),
+                _scheduleItem(
+                    context, '11:30 AM – 12:30 PM', 'Computer Science', 'Room 205'),
               ],
             ),
           ),
@@ -241,7 +259,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _scheduleItem(BuildContext context, String time, String subject, String room) {
+  Widget _scheduleItem(
+      BuildContext context, String time, String subject, String room) {
     final theme = Provider.of<ThemeProvider>(context, listen: false);
     final dark = theme.isDarkMode;
 
@@ -267,7 +286,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         fontWeight: FontWeight.bold,
                         color: dark ? Colors.white : Colors.black)),
                 Text('$time • $room',
-                    style: TextStyle(fontSize: 12, color: dark ? Colors.white70 : Colors.grey[600]))
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: dark ? Colors.white70 : Colors.grey[600]))
               ],
             ),
           ),

@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-import '../Components/timetable_widget.dart'; // Ensure this path is correct
+import '../Components/timetable_widget.dart';
 import '../models/theme_model.dart';
 import '../components/theme_toggle_button.dart';
 import '../components/neon_container.dart';
 import '../components/attendance_pie_chart.dart';
 import '../components/fee_due_card.dart';
 
-import 'profile_page.dart'; // This is the correct import for ProfilePage
+import 'profile_page.dart';
 import 'calendar_page.dart';
 import 'community_page.dart';
 import 'mess_menu_page.dart';
-import 'more_options_page.dart'; // Import the MoreOptionsPage
+import 'more_options_page.dart';
 
 class HomePage extends StatefulWidget {
   final String regNo;
@@ -32,11 +32,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _pages = [
-      DashboardScreen(regNo: widget.regNo), // Pass regNo to DashboardScreen
+      DashboardScreen(regNo: widget.regNo),
       CalendarPage(),
       CommunityPage(),
       MessMenuPage(),
-       MoreOptionsPage(), // MoreOptionsPage is now at index 4, corresponding to the 'More' icon
+      MoreOptionsPage(),
     ];
   }
 
@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendar'),
             BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Community'),
             BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Mess'),
-            BottomNavigationBarItem(icon: Icon(Icons.more_horiz_outlined), label: 'More'), // The 'More' icon is at index 4
+            BottomNavigationBarItem(icon: Icon(Icons.more_horiz_outlined), label: 'More'),
           ],
         ),
       ),
@@ -87,8 +87,8 @@ class _HomePageState extends State<HomePage> {
 }
 
 class DashboardScreen extends StatefulWidget {
-  final String regNo; // Add regNo parameter
-  const DashboardScreen({super.key, required this.regNo}); // Update constructor
+  final String regNo;
+  const DashboardScreen({super.key, required this.regNo});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -96,11 +96,9 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool showFeeDue = false;
-
   double attendancePercent = -1;
   int attendedClasses = 0;
   int totalClasses = 0;
-
   String? cgpa;
   bool isCgpaLoading = true;
 
@@ -128,7 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       } else {
         setState(() => attendancePercent = 0);
       }
-    } catch (e) {
+    } catch (_) {
       setState(() => attendancePercent = 0);
     }
   }
@@ -168,9 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-<<<<<<< HEAD
-          /* Welcome banner - Now tappable to ProfileScreen */
-          GestureDetector( // Wrap the entire NeonContainer for a larger tap area
+          GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
@@ -184,38 +180,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     radius: 28,
                     backgroundColor:
                     theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
-                    child:
-                    Icon(Icons.person, color: theme.isDarkMode ? Colors.black : Colors.white),
-=======
-          NeonContainer(
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor:
-                  theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
-                  child: Icon(Icons.person,
-                      color: theme.isDarkMode ? Colors.black : Colors.white),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Welcome Back!',
-                          style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: theme.isDarkMode
-                                  ? AppTheme.neonBlue
-                                  : AppTheme.primaryBlue)),
-                      Text('Student Dashboard',
-                          style: TextStyle(
-                              color: theme.isDarkMode
-                                  ? Colors.white70
-                                  : Colors.grey[600]))
-                    ],
->>>>>>> a6623e564f35fe398ded725ac0e0f8ce6ea2e578
+                    child: Icon(Icons.person,
+                        color: theme.isDarkMode ? Colors.black : Colors.white),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -297,8 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
                             child: showFeeDue
-                                ? const FeeDueCard(
-                                key: ValueKey('fee'), feeDue: 12000)
+                                ? const FeeDueCard(key: ValueKey('fee'), feeDue: 12000)
                                 : NeonContainer(
                               key: const ValueKey('gpa'),
                               padding: const EdgeInsets.all(12),
@@ -312,12 +277,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           : Colors.orange),
                                   const SizedBox(height: 4),
                                   const Text('GPA',
-                                      style: TextStyle(fontWeight: FontWeight.bold)),
+                                      style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                                   isCgpaLoading
                                       ? const SizedBox(
                                     height: 16,
                                     width: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                                   )
                                       : Text('$cgpa / 10',
                                       style: TextStyle(
@@ -337,25 +304,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-<<<<<<< HEAD
-
-
-
-          /* Today’s Timetable Section (Styled as per image) ----------------------------------------------- */
-          Container
-            (
-            decoration: BoxDecoration(
-              color: theme.isDarkMode ? AppTheme.darkSurface : Colors.white, // Background for the whole timetable section
-              borderRadius: BorderRadius.circular(15), // Overall rounded corners for the timetable section
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-=======
           const SizedBox(height: 20),
           NeonContainer(
             child: Column(
@@ -373,6 +321,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _scheduleItem(context, '10:15 AM – 11:15 AM', 'Physics', 'Lab 2'),
                 _scheduleItem(context, '11:30 AM – 12:30 PM', 'Computer Science', 'Room 205'),
               ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            decoration: BoxDecoration(
+              color: theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: SizedBox(
+              height: 400,
+              child: TimetableWidget(),
             ),
           ),
         ],
@@ -398,18 +364,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
->>>>>>> a6623e564f35fe398ded725ac0e0f8ce6ea2e578
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-
-                // Timetable content - The TimetableWidget is expected to contain the scrollable list of subject boxes
-                // We give it a constrained height using SizedBox to enable its internal scrolling.
-                 SizedBox
-                   (
-                  height: 400, // Adjust this height as needed to fit your design
-                  child: TimetableWidget(),
-                ),
+                Text(time, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('$subject · $room'),
               ],
             ),
           ),

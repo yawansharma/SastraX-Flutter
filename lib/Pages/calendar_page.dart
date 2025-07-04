@@ -198,7 +198,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             themeProvider.primaryColor,
                             Color(0xFF3b82f6),
                           ]),
-                          borderRadius: BorderRadius.only(
+                          borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(20),
                             topRight: Radius.circular(20),
                           ),
@@ -209,7 +209,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             SizedBox(width: 8),
                             Text(
                               'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -265,7 +265,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                               }
                                             });
                                           },
-                                          icon: Icon(Icons.delete, color: Colors.red),
+                                          icon: const Icon(Icons.delete, color: Colors.red),
                                         ),
                                       ],
                                     ),

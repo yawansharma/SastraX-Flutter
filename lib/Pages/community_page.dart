@@ -103,7 +103,7 @@ class _CommunityPageState extends State<CommunityPage> {
                             ),
                           ]
                         : [
-                            BoxShadow(
+                            const BoxShadow(
                               color: Colors.black12,
                               blurRadius: 10,
                               offset: Offset(0, 5),
@@ -145,7 +145,7 @@ class _CommunityPageState extends State<CommunityPage> {
                           ),
                         ]
                       : [
-                          BoxShadow(
+                          const BoxShadow(
                             color: Colors.black12,
                             blurRadius: 10,
                             offset: Offset(0, 5),

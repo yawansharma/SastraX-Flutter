@@ -5,6 +5,8 @@ class TextUserPassField extends StatefulWidget {
   final String hintText;
   final bool passObscure;
   final String? errorText;
+  final Color? textColor;   // ✅ Added
+  final Color? hintColor;   // ✅ Added
 
   const TextUserPassField({
     Key? key,
@@ -12,6 +14,8 @@ class TextUserPassField extends StatefulWidget {
     required this.hintText,
     required this.passObscure,
     this.errorText,
+    this.textColor,         // ✅ Added
+    this.hintColor,         // ✅ Added
   }) : super(key: key);
 
   @override
@@ -19,12 +23,12 @@ class TextUserPassField extends StatefulWidget {
 }
 
 class _TextUserPassFieldState extends State<TextUserPassField> {
-  late bool _obscureText; // This will handle the visibility of the password
+  late bool _obscureText;
 
   @override
   void initState() {
     super.initState();
-    _obscureText = widget.passObscure; // Initialize with the passed value
+    _obscureText = widget.passObscure;
   }
 
   @override
@@ -36,7 +40,10 @@ class _TextUserPassFieldState extends State<TextUserPassField> {
         children: [
           TextField(
             controller: widget.controller,
-            obscureText: _obscureText, // Use the dynamic _obscureText value
+            obscureText: _obscureText,
+            style: TextStyle(
+              color: widget.textColor ?? Colors.black, // ✅ Set text color
+            ),
             decoration: InputDecoration(
               enabledBorder: const OutlineInputBorder(
                 borderSide: BorderSide(
@@ -49,28 +56,30 @@ class _TextUserPassFieldState extends State<TextUserPassField> {
                 ),
               ),
               hintText: widget.hintText,
+              hintStyle: TextStyle(
+                color: widget.hintColor ?? Colors.grey, // ✅ Set hint color
+              ),
               suffixIcon: widget.passObscure
                   ? IconButton(
-                icon: Icon(
-                  _obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.grey,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscureText = !_obscureText; // Toggle the visibility
-                  });
-                },
-              )
+                      icon: Icon(
+                        _obscureText ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                    )
                   : null,
             ),
           ),
-          // Display error message if exists
           if (widget.errorText != null)
             Padding(
               padding: const EdgeInsets.only(top: 5),
               child: Text(
                 widget.errorText!,
-                style: TextStyle(color: Colors.red, fontSize: 12),
+                style: const TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
         ],

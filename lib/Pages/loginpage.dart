@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   String? passwordErrorMessage;
   String? captchaErrorMessage;
 
-  String captchaBaseUrl = 'https://instant-researcher-defend-tagged.trycloudflare.com';
+  String captchaBaseUrl = 'https://dna-attitude-per-eds.trycloudflare.com';
   late String captchaUrl;
 
   @override
@@ -31,7 +31,8 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _refreshCaptcha();
 
-    userController.addListener(() {
+    userController.addListener(()
+    {
       if (userController.text.isNotEmpty) {
         setState(() => userErrorMessage = null);
       }
@@ -221,10 +222,10 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context); // ✅ Added
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,10 +236,10 @@ class _LoginPageState extends State<LoginPage> {
               child: Text(
                 'Enter your Login Credentials',
                 style: GoogleFonts.lato(
-                  textStyle: const TextStyle(
+                  textStyle: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black,
+                    color: themeProvider.isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
               ),
@@ -247,20 +248,24 @@ class _LoginPageState extends State<LoginPage> {
               controller: userController,
               hintText: "Register Number",
               passObscure: false,
-              errorText: userErrorMessage, // ✅ Added
+              errorText: userErrorMessage,
+              textColor: themeProvider.isDarkMode ? Colors.white : Colors.black,
+              hintColor: themeProvider.isDarkMode ? Colors.white70 : Colors.grey,
             ),
             const SizedBox(height: 5),
             TextUserPassField(
               controller: passwordController,
               hintText: "Password",
               passObscure: true,
-              errorText: passwordErrorMessage, // ✅ Added
+              errorText: passwordErrorMessage,
+              textColor: themeProvider.isDarkMode ? Colors.white : Colors.black,
+              hintColor: themeProvider.isDarkMode ? Colors.white70 : Colors.grey,
             ),
             const SizedBox(height: 20),
             Center(
               child: FloatingActionButton(
                 onPressed: () {
-                  FocusScope.of(context).unfocus(); // Hide keyboard
+                  FocusScope.of(context).unfocus();
                   if (userController.text.isEmpty || passwordController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -283,10 +288,11 @@ class _LoginPageState extends State<LoginPage> {
             Center(
               child: FloatingActionButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(regNo: userController.text)));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => HomePage(regNo: userController.text)));
                 },
                 mini: true,
-                child: Icon(Icons.arrow_forward),
+                child: const Icon(Icons.arrow_forward),
               ),
             )
           ],

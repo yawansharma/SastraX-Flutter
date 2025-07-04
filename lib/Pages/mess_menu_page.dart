@@ -14,39 +14,54 @@ class _MessMenuPageState extends State<MessMenuPage> {
   List<dynamic> fullMenu = [];
   List<dynamic> filteredMenu = [];
   String selectedWeek = "1";
-  final int currentDayIndex = DateTime.now().weekday - 1;
-  final int currentWeek = ((DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays ~/ 7) % 4) + 1;
+
+  final List<String> weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  String selectedDay = '';
+
+  final int currentDayIndex = DateTime.now().weekday % 7;
+  final int currentWeek =
+      ((DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays ~/ 7) % 4) + 1;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: currentDayIndex.clamp(0, 6));
+    _pageController = PageController(initialPage: currentDayIndex);
     selectedWeek = currentWeek.toString();
+    selectedDay = weekDays[currentDayIndex];
     fetchMessMenu();
   }
 
   Future<void> fetchMessMenu() async {
     try {
-      final response = await http.get(Uri.parse('https://instant-researcher-defend-tagged.trycloudflare.com/messMenu'));
-      if (response.statusCode == 200) {
+      final res = await http.get(
+        Uri.parse('https://dna-attitude-per-eds.trycloudflare.com/messMenu'),
+      );
+      if (res.statusCode == 200) {
         setState(() {
-          fullMenu = json.decode(response.body);
+          fullMenu = json.decode(res.body);
           filterMenuByWeek(selectedWeek);
         });
+      } else {
+        throw Exception('HTTP ${res.statusCode}');
       }
     } catch (e) {
-      print('Error fetching mess menu: $e');
+      debugPrint('Error fetching mess menu → $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Couldn’t load menu: $e')),
+        );
+      }
     }
   }
 
   void filterMenuByWeek(String week) {
     setState(() {
       selectedWeek = week;
-      filteredMenu = fullMenu.where((day) => day["week"] == week).toList();
+      filteredMenu = fullMenu.where((d) => d['week'] == week).toList();
     });
   }
 
-  String _getBackgroundImage(String title) {
+  String _bg(String title) {
     switch (title) {
       case 'Breakfast':
         return 'assets/images/sunrise.jpg';
@@ -64,151 +79,162 @@ class _MessMenuPageState extends State<MessMenuPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return Scaffold(
-          backgroundColor: themeProvider.backgroundColor,
-          body: filteredMenu.isEmpty
-              ? Center(child: CircularProgressIndicator())
-              : PageView.builder(
-            controller: _pageController,
-            itemCount: filteredMenu.length,
-            itemBuilder: (context, index) {
-              final dayMenu = filteredMenu[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (_, theme, __) => Scaffold(
+        backgroundColor: theme.backgroundColor,
+        body: filteredMenu.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+          children: [
+            const SizedBox(height: 50),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
                 children: [
-                  SizedBox(height: 50),
-                  Center(
-                    child: Text(
-                      dayMenu['day'],
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
-                        color: themeProvider.textColor,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Expanded(
-                    child: ListView(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      children: [
-                        _buildMealCard('Breakfast', dayMenu['breakfast'].join(", "), themeProvider),
-                        _buildMealCard('Lunch', dayMenu['lunch'].join(", "), themeProvider),
-                        _buildMealCard('Snacks', dayMenu['snacks'].join(", "), themeProvider),
-                        _buildMealCard('Dinner', dayMenu['dinner'].join(", "), themeProvider),
-                      ],
-                    ),
-                  ),
+                  _buildDayRow(theme, 0, 4), // SUN - WED
+                  const SizedBox(height: 10),
+                  _buildDayRow(theme, 4, 7), // THU - SAT
                 ],
-              );
-            },
-          ),
-        );
-      },
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(), // disable swiping
+                itemCount: filteredMenu.length,
+                itemBuilder: (_, idx) {
+                  final day = filteredMenu[idx];
+                  return ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    children: [
+                      _mealCard('Breakfast', day['breakfast'].join(', '), theme),
+                      _mealCard('Lunch', day['lunch'].join(', '), theme),
+                      _mealCard('Snacks', day['snacks'].join(', '), theme),
+                      _mealCard('Dinner', day['dinner'].join(', '), theme),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildMealCard(String title, String content, ThemeProvider themeProvider) {
-    Color cardColor;
-    IconData mealIcon;
+  Widget _buildDayRow(ThemeProvider theme, int start, int end) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: weekDays.sublist(start, end).map((dayAbbr) {
+        final int index = weekDays.indexOf(dayAbbr);
+        final bool isSelected = selectedDay == dayAbbr;
 
-    switch (title) {
-      case 'Breakfast':
-        cardColor = themeProvider.isDarkMode ? Color(0xFFFFD93D) : Colors.orange[300]!;
-        mealIcon = Icons.wb_sunny;
-        break;
-      case 'Lunch':
-        cardColor = themeProvider.isDarkMode ? AppTheme.neonBlue : Colors.green[300]!;
-        mealIcon = Icons.lunch_dining;
-        break;
-      case 'Snacks':
-        cardColor = themeProvider.isDarkMode ? Color(0xFFFF6B6B) : Colors.purple[300]!;
-        mealIcon = Icons.local_cafe;
-        break;
-      case 'Dinner':
-        cardColor = themeProvider.isDarkMode ? AppTheme.electricBlue : Colors.blue[300]!;
-        mealIcon = Icons.dinner_dining;
-        break;
-      default:
-        cardColor = themeProvider.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
-        mealIcon = Icons.restaurant;
-    }
-
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      height: 170,
-      decoration: BoxDecoration(
-        color: themeProvider.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        border: themeProvider.isDarkMode ? Border.all(color: cardColor.withOpacity(0.3)) : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.asset(
-              _getBackgroundImage(title),
-              fit: BoxFit.cover,
-              height: 170,
-              width: double.infinity,
-              color: Colors.black.withOpacity(0.4),
-              colorBlendMode: BlendMode.darken,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    mealIcon,
-                    color: themeProvider.isDarkMode ? Colors.black : Colors.white,
-                    size: 25,
+        return Expanded(
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                selectedDay = dayAbbr;
+                _pageController.jumpToPage(index);
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? (theme.isDarkMode ? Colors.amber[300] : Colors.blueAccent)
+                    : theme.cardBackgroundColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  dayAbbr,
+                  style: TextStyle(
+                    color: isSelected
+                        ? (theme.isDarkMode ? Colors.black : Colors.white)
+                        : theme.textColor,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        content,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              ],
+              ),
             ),
           ),
-        ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _mealCard(String title, String menu, ThemeProvider theme) {
+    final Map<String, dynamic> palette = {
+      'Breakfast': {
+        'color': theme.isDarkMode ? const Color(0xFFFFD93D) : Colors.orange[300],
+        'icon': Icons.wb_sunny
+      },
+      'Lunch': {
+        'color': theme.isDarkMode ? AppTheme.neonBlue : Colors.green[300],
+        'icon': Icons.lunch_dining
+      },
+      'Snacks': {
+        'color': theme.isDarkMode ? const Color(0xFFFF6B6B) : Colors.purple[300],
+        'icon': Icons.local_cafe
+      },
+      'Dinner': {
+        'color': theme.isDarkMode ? AppTheme.electricBlue : Colors.blue[300],
+        'icon': Icons.dinner_dining
+      }
+    };
+
+    final Color cardColor = palette[title]?['color'] as Color? ??
+        (theme.isDarkMode ? Colors.grey[700]! : Colors.grey[300]!);
+    final IconData icon = palette[title]?['icon'] as IconData? ?? Icons.restaurant;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      constraints: const BoxConstraints(minHeight: 120),
+      decoration: BoxDecoration(
+        color: theme.cardBackgroundColor,
+        borderRadius: BorderRadius.circular(20),
+        border: theme.isDarkMode ? Border.all(color: cardColor.withOpacity(0.3)) : null,
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
+        image: DecorationImage(
+          image: AssetImage(_bg(title)),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon,
+                  color: theme.isDarkMode ? Colors.black : Colors.white, size: 25),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    menu,
+                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

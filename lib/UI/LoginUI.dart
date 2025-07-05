@@ -46,12 +46,12 @@ class LoginUI extends StatelessWidget {
             bottom: 30, // aligns to bottom
             left: 10,   // aligns to left
             child: FadeInUp(
-              duration: const Duration(milliseconds: 2000),
+                duration: const Duration(milliseconds: 2000),
                 child: Row(
                   children: [
                     Text("ONE " , style: GoogleFonts.lato(
-                      fontSize: 25,
-                      fontWeight: FontWeight.w900
+                        fontSize: 25,
+                        fontWeight: FontWeight.w900
                     ),
                     ),
                     Text("SASTRA " , style: GoogleFonts.lato(
@@ -62,32 +62,32 @@ class LoginUI extends StatelessWidget {
                     ),
                   ],
                 )
-                ),
-              ),
+            ),
+          ),
           Positioned(
             bottom: -50, // aligns to bottom
             left: -10,   // aligns to left
             child: FadeInUp(
               duration: const Duration(milliseconds: 3000),
               child: Container(
-                width: 170,
-                height: 100,
-                margin: const EdgeInsets.only(left: 20, bottom: 20),
-                child: Row(
-                  children: [
-                    Text("ONE " , style: GoogleFonts.lato(
-                        fontSize: 25,
-                        fontWeight: FontWeight.w900
-                    ),
-                    ),
-                    Text("APP " , style: GoogleFonts.lato(
-                        fontSize: 25,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w900
-                    ),
-                    ),
-                  ],
-                )
+                  width: 170,
+                  height: 100,
+                  margin: const EdgeInsets.only(left: 20, bottom: 20),
+                  child: Row(
+                    children: [
+                      Text("ONE " , style: GoogleFonts.lato(
+                          fontSize: 25,
+                          fontWeight: FontWeight.w900
+                      ),
+                      ),
+                      Text("APP " , style: GoogleFonts.lato(
+                          fontSize: 25,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w900
+                      ),
+                      ),
+                    ],
+                  )
               ),
             ),
           ),

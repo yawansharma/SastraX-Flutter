@@ -1,13 +1,11 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/theme_model.dart';
 
 class CalendarPage extends StatefulWidget {
-  final String regNo; // ✅ user-specific key
+  final String regNo;
   const CalendarPage({required this.regNo, Key? key}) : super(key: key);
 
   @override
@@ -17,17 +15,15 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-
   Map<String, List<String>> _events = {};
   final TextEditingController _noteController = TextEditingController();
   late SharedPreferences _prefs;
-
-  late String _storageKey; // ✅ Dynamic storage key
+  late String _storageKey;
 
   @override
   void initState() {
     super.initState();
-    _storageKey = 'calendar_events_${widget.regNo}'; // ✅ unique per user
+    _storageKey = 'calendar_events_${widget.regNo}';
     _loadEvents();
   }
 
@@ -36,9 +32,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final rawJson = _prefs.getString(_storageKey);
     if (rawJson != null) {
       final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
-      _events = decoded.map((key, value) =>
-          MapEntry(key, List<String>.from(value as List)));
-      setState(() {});
+      _events = decoded.map((key, value) => MapEntry(key, List<String>.from(value as List)));
     } else {
       _events = {
         '2024-01-15': ['Assignment Due - Mathematics'],
@@ -46,6 +40,7 @@ class _CalendarPageState extends State<CalendarPage> {
         '2024-01-25': ['Mid-term Exam - Chemistry'],
       };
     }
+    setState(() {});
   }
 
   Future<void> _saveEvents() async {
@@ -74,8 +69,14 @@ class _CalendarPageState extends State<CalendarPage> {
     _saveEvents();
   }
 
-  String _keyFromDate(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  String _keyFromDate(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _monthName(int m) => const [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ][m - 1];
 
   @override
   Widget build(BuildContext context) {
@@ -83,12 +84,18 @@ class _CalendarPageState extends State<CalendarPage> {
       builder: (context, themeProvider, child) {
         return Scaffold(
           backgroundColor: themeProvider.backgroundColor,
-          body: Column(
-            children: [
-              _buildCalendarCard(themeProvider),
-              Expanded(child: _buildEventsCard(themeProvider)),
-              const SizedBox(height: 16),
-            ],
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildCalendarCard(themeProvider),
+                  const SizedBox(height: 16),
+                  _buildEventsCard(themeProvider),
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -97,7 +104,6 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _buildCalendarCard(ThemeProvider theme) {
     return Container(
-      margin: const EdgeInsets.all(16),
       decoration: _boxDecoration(theme),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -107,87 +113,21 @@ class _CalendarPageState extends State<CalendarPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _navIcon(Icons.chevron_left, () {
-                  setState(() =>
-                  _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1));
+                  setState(() => _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1));
                 }, theme),
                 Text(
                   '${_monthName(_focusedDay.month)} ${_focusedDay.year}',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: theme.textColor),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.textColor),
                 ),
                 _navIcon(Icons.chevron_right, () {
-                  setState(() =>
-                  _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1));
+                  setState(() => _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1));
                 }, theme),
               ],
             ),
-            const SizedBox(height: 16),
-            SizedBox(height: 200, child: _buildMiniCalendar(theme)),
+            const SizedBox(height: 12),
+            _buildMiniCalendar(theme),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildEventsCard(ThemeProvider theme) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: _boxDecoration(theme),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient:
-              LinearGradient(colors: [theme.primaryColor, const Color(0xFF3b82f6)]),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.event_note, color: Colors.white),
-                const SizedBox(width: 8),
-                Text(
-                  'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: _getEventsForDay(_selectedDay).isEmpty
-                      ? _emptyState(theme)
-                      : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _getEventsForDay(_selectedDay).length,
-                    itemBuilder: (_, idx) {
-                      final event = _getEventsForDay(_selectedDay)[idx];
-                      return _eventTile(event, theme);
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.primaryColor,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10))),
-                    onPressed: () => _showAddNoteDialog(theme),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('Add Event',
-                        style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
       ),
     );
   }
@@ -202,60 +142,99 @@ class _CalendarPageState extends State<CalendarPage> {
       children: [
         Row(
           children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-              .map((d) => Expanded(
-              child: Center(
-                  child: Text(d,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: theme.textSecondaryColor)))))
+              .map((d) => Expanded(child: Center(child: Text(d, style: TextStyle(fontWeight: FontWeight.bold, color: theme.textSecondaryColor)))))
               .toList(),
         ),
         const SizedBox(height: 8),
-        Expanded(
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate:
-            const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
-            itemCount: 42,
-            itemBuilder: (_, idx) {
-              final dayOffset = idx - (firstWeekday - 1);
-              if (dayOffset < 1 || dayOffset > daysInMonth) return Container();
-              final current = DateTime(_focusedDay.year, _focusedDay.month, dayOffset);
-              final isToday = _isSameDay(current, DateTime.now());
-              final isSel = _isSameDay(current, _selectedDay);
-              final hasEvt = _getEventsForDay(current).isNotEmpty;
+        GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
+          itemCount: 42,
+          itemBuilder: (_, idx) {
+            final dayOffset = idx - (firstWeekday - 1);
+            if (dayOffset < 1 || dayOffset > daysInMonth) return Container();
+            final current = DateTime(_focusedDay.year, _focusedDay.month, dayOffset);
+            final isToday = _isSameDay(current, DateTime.now());
+            final isSel = _isSameDay(current, _selectedDay);
+            final hasEvt = _getEventsForDay(current).isNotEmpty;
 
-              return GestureDetector(
-                onTap: () => setState(() => _selectedDay = current),
-                child: Container(
-                  margin: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: isSel
-                        ? theme.primaryColor
-                        : isToday
-                        ? theme.primaryColor.withOpacity(0.2)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    border: hasEvt
-                        ? Border.all(color: Colors.orange, width: 2)
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text('$dayOffset',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isSel
-                                ? Colors.white
-                                : isToday
-                                ? theme.primaryColor
-                                : theme.textColor)),
-                  ),
+            return GestureDetector(
+              onTap: () => setState(() => _selectedDay = current),
+              child: Container(
+                margin: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: isSel
+                      ? theme.primaryColor
+                      : isToday
+                      ? theme.primaryColor.withOpacity(0.2)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  border: hasEvt ? Border.all(color: Colors.orange, width: 2) : null,
                 ),
-              );
-            },
-          ),
+                child: Center(
+                  child: Text('$dayOffset', style: TextStyle(fontWeight: FontWeight.w600, color: isSel ? Colors.white : theme.textColor)),
+                ),
+              ),
+            );
+          },
         ),
       ],
+    );
+  }
+
+  Widget _buildEventsCard(ThemeProvider theme) {
+    final events = _getEventsForDay(_selectedDay);
+
+    return Container(
+      decoration: _boxDecoration(theme),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [theme.primaryColor, const Color(0xFF3b82f6)]),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.event_note, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          if (events.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: _emptyState(theme),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: events.length,
+              padding: const EdgeInsets.all(16),
+              itemBuilder: (_, idx) => _eventTile(events[idx], theme),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.primaryColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () => _showAddNoteDialog(theme),
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text('Add Event', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -263,8 +242,9 @@ class _CalendarPageState extends State<CalendarPage> {
     margin: const EdgeInsets.only(bottom: 8),
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-        color: theme.primaryColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8)),
+      color: theme.primaryColor.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(8),
+    ),
     child: Row(
       children: [
         Icon(Icons.event, color: theme.primaryColor),
@@ -280,12 +260,10 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _emptyState(ThemeProvider theme) => Center(
     child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.event_busy, size: 50, color: theme.textSecondaryColor),
         const SizedBox(height: 10),
-        Text('No events for this day',
-            style: TextStyle(color: theme.textSecondaryColor)),
+        Text('No events for this day', style: TextStyle(color: theme.textSecondaryColor)),
       ],
     ),
   );
@@ -295,34 +273,13 @@ class _CalendarPageState extends State<CalendarPage> {
     borderRadius: BorderRadius.circular(20),
     boxShadow: [
       BoxShadow(
-          color: t.isDarkMode
-              ? AppTheme.neonBlue.withOpacity(0.2)
-              : Colors.black12,
+          color: t.isDarkMode ? Colors.blueAccent.withOpacity(0.2) : Colors.black12,
           blurRadius: 10,
-          offset: const Offset(0, 5))
+          offset: const Offset(0, 5)),
     ],
   );
 
-  IconButton _navIcon(IconData icon, VoidCallback cb, ThemeProvider t) =>
-      IconButton(icon: Icon(icon, color: t.primaryColor), onPressed: cb);
-
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
-  String _monthName(int m) => const [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ][m - 1];
+  IconButton _navIcon(IconData icon, VoidCallback cb, ThemeProvider t) => IconButton(icon: Icon(icon, color: t.primaryColor), onPressed: cb);
 
   void _showAddNoteDialog(ThemeProvider theme) {
     _noteController.clear();
@@ -330,49 +287,42 @@ class _CalendarPageState extends State<CalendarPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: theme.cardBackgroundColor,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(
-            controller: _noteController,
-            maxLines: 3,
-            style: TextStyle(color: theme.textColor),
-            decoration: InputDecoration(
-              hintText: 'Enter your note...',
-              hintStyle: TextStyle(color: theme.textSecondaryColor),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: theme.primaryColor)),
-              focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide:
-                  BorderSide(color: theme.primaryColor, width: 2)),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _noteController,
+              maxLines: 3,
+              style: TextStyle(color: theme.textColor),
+              decoration: InputDecoration(
+                hintText: 'Enter your note...',
+                hintStyle: TextStyle(color: theme.textSecondaryColor),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: theme.primaryColor, width: 2)),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel',
-                    style: TextStyle(color: theme.textSecondaryColor))),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primaryColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10))),
-              onPressed: () {
-                if (_noteController.text.trim().isNotEmpty) {
-                  _addNote(_selectedDay, _noteController.text.trim());
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Add', style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel', style: TextStyle(color: theme.textSecondaryColor))),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: theme.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  onPressed: () {
+                    if (_noteController.text.trim().isNotEmpty) {
+                      _addNote(_selectedDay, _noteController.text.trim());
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Add', style: TextStyle(color: Colors.white)),
+                ),
+              ],
             )
-          ])
-        ]),
+          ],
+        ),
       ),
     );
   }

@@ -30,12 +30,10 @@ class _TimetableWidgetState extends State<TimetableWidget> {
   void initState() {
     super.initState();
     currentIndex = _getCurrentIndex();
-
-    // Scroll to the current index after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (currentIndex != null && _scrollController.hasClients) {
         _scrollController.animateTo(
-          currentIndex! * 85.0, // ~height of each item
+          currentIndex! * 85.0,
           duration: const Duration(milliseconds: 500),
           curve: Curves.easeInOut,
         );
@@ -46,19 +44,14 @@ class _TimetableWidgetState extends State<TimetableWidget> {
   int? _getCurrentIndex() {
     final now = DateTime.now();
     final formatter = DateFormat('h:mm a');
-
     for (int i = 0; i < timetable.length; i++) {
       try {
         final parts = timetable[i]['time']!.split(' - ');
         final start = formatter.parse(parts[0]);
         final end = formatter.parse(parts[1]);
-
         final startTime = DateTime(now.year, now.month, now.day, start.hour, start.minute);
         final endTime = DateTime(now.year, now.month, now.day, end.hour, end.minute);
-
-        if (now.isAfter(startTime) && now.isBefore(endTime)) {
-          return i;
-        }
+        if (now.isAfter(startTime) && now.isBefore(endTime)) return i;
       } catch (_) {}
     }
     return null;
@@ -69,13 +62,10 @@ class _TimetableWidgetState extends State<TimetableWidget> {
       final now = DateTime.now();
       final formatter = DateFormat('h:mm a');
       final parts = timeRange.split(' - ');
-
       final start = formatter.parse(parts[0]);
       final end = formatter.parse(parts[1]);
-
       final startTime = DateTime(now.year, now.month, now.day, start.hour, start.minute);
       final endTime = DateTime(now.year, now.month, now.day, end.hour, end.minute);
-
       return now.isAfter(startTime) && now.isBefore(endTime);
     } catch (_) {
       return false;
@@ -84,6 +74,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final scale = MediaQuery.textScaleFactorOf(context).clamp(1.0, 1.2);
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
         return Container(
@@ -102,8 +93,8 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: themeProvider.isDarkMode
-                      ? LinearGradient(colors: [Colors.black, Color(0xFF1A1A1A)])
-                      : LinearGradient(colors: [AppTheme.navyBlue, Color(0xFF3b82f6)]),
+                      ? const LinearGradient(colors: [Colors.black, Color(0xFF1A1A1A)])
+                      : const LinearGradient(colors: [AppTheme.navyBlue, Color(0xFF3b82f6)]),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -117,7 +108,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     Text(
                       'Today\'s Timetable',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 20 / scale,
                         fontWeight: FontWeight.bold,
                         color: themeProvider.isDarkMode ? AppTheme.neonBlue : Colors.white,
                       ),
@@ -155,7 +146,8 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         ),
                       ),
                       child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         leading: Container(
                           width: 50,
                           height: 40,
@@ -175,9 +167,11 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                             child: Text(
                               '${index + 1}',
                               style: TextStyle(
-                                color: themeProvider.isDarkMode ? Colors.black : Colors.white,
+                                color: themeProvider.isDarkMode
+                                    ? Colors.black
+                                    : Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 14 / scale,
                               ),
                             ),
                           ),
@@ -187,19 +181,25 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: themeProvider.primaryColor,
-                            fontSize: 16,
+                            fontSize: 15 / scale,
                           ),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(item['time']!,
-                                style: TextStyle(
-                                    color: themeProvider.textSecondaryColor, fontSize: 14)),
+                            Text(
+                              item['time']!,
+                              style: TextStyle(
+                                  color: themeProvider.textSecondaryColor,
+                                  fontSize: 13 / scale),
+                            ),
                             if (item['room']!.isNotEmpty)
-                              Text(item['room']!,
-                                  style: TextStyle(
-                                      color: themeProvider.textSecondaryColor, fontSize: 12)),
+                              Text(
+                                item['room']!,
+                                style: TextStyle(
+                                    color: themeProvider.textSecondaryColor,
+                                    fontSize: 11.5 / scale),
+                              ),
                           ],
                         ),
                         trailing: Icon(

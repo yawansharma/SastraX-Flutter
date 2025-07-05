@@ -1,455 +1,277 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../models/theme_model.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:sastra_x/Pages/SGPA_calculator.dart'; // Correct import for CgpaCalculatorPage
+import 'package:sastra_x/Pages/internals_page.dart';
 
-class MoreOptionsPage extends StatelessWidget {
-  final List<Map<String, dynamic>> options = [
+import 'about_team_screen.dart';
+import 'credits_page.dart';
+
+
+
+
+class MoreOptionsScreen extends StatelessWidget {
+  const MoreOptionsScreen({super.key});
+
+  final List<Map<String, dynamic>> _options = const [
     {
-      'title': 'Sports',
-      'subtitle': 'Sports activities and events',
-      'icon': Icons.sports_soccer,
+      'title': 'Student Internals',
+      'subtitle': 'View marks & grades',
+      'icon': Icons.assessment,
+      'color': Colors.blue, // This color is specific to this card's design
+      'route': 'internals',
+    },
+    {
+      'title': 'Credits',
+      'subtitle': 'View Credits',
+      'icon': Icons.assignment, // Changed icon to a more fitting one
       'color': Colors.green,
+      'route': 'credits',
     },
     {
-      'title': 'Media',
-      'subtitle': 'Photos, videos and announcements',
-      'icon': Icons.photo_library,
+      'title': 'SGPA calculator',
+      'subtitle': 'Calculate your SGPA', // More descriptive subtitle
+      'icon': Icons.calculate_sharp,
       'color': Colors.purple,
+      'route': 'sgpa',
     },
     {
-      'title': 'Clubs',
-      'subtitle': 'Student clubs and societies',
-      'icon': Icons.group,
-      'color': Colors.orange,
+      'title': 'Student Clubs',
+      'subtitle': 'Explore clubs & societies', // More descriptive subtitle
+      'icon': Icons.groups,
+      'color': Colors.teal,
+      'route': 'clubs',
     },
     {
       'title': 'Library',
-      'subtitle': 'Library resources and booking',
+      'subtitle': 'Digital library access',
       'icon': Icons.library_books,
       'color': Colors.brown,
-    },
-    {
-      'title': 'Calculator',
-      'subtitle': 'SGPA predictor',
-      'icon': Icons.calculate_sharp,
-      'color': Colors.lightGreen,
+      'route': 'library',
     },
     {
       'title': 'Transport',
-      'subtitle': 'Bus routes and schedules',
+      'subtitle': 'Bus routes & timings',
       'icon': Icons.directions_bus,
-      'color': Colors.blue,
+      'color': Colors.orange,
+      'route': 'transport',
     },
     {
-      'title': 'Hostel',
-      'subtitle': 'Hostel information and services',
-      'icon': Icons.home,
-      'color': Colors.teal,
-    },
-    {
-      'title': 'Placement',
-      'subtitle': 'Placement opportunities and updates',
-      'icon': Icons.work,
-      'color': Colors.indigo,
-    },
-    {
-      'title': 'Events',
-      'subtitle': 'Campus events and festivals',
+      'title': 'College Events',
+      'subtitle': 'Stay updated on events', // More descriptive subtitle
       'icon': Icons.event,
+      'color': Colors.pink,
+      'route': 'events',
+    },
+    {
+      'title': 'About Team',
+      'subtitle': 'Meet the developers',
+      'icon': Icons.info_outline,
+      'color': Colors.indigo,
+      'route': 'about_team',
+    },
+    {
+      'title': 'Settings',
+      'subtitle': 'App preferences',
+      'icon': Icons.settings,
+      'color': Colors.grey,
+      'route': 'settings',
+    },
+    {
+      'title': 'Help & Support',
+      'subtitle': 'Get assistance', // More descriptive subtitle
+      'icon': Icons.help_outline,
       'color': Colors.red,
+      'route': 'help',
     },
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return Scaffold(
-          backgroundColor: themeProvider.backgroundColor,
-          appBar: AppBar(
-            title: Text(
-              'More Options',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
-              ),
-            ),
-            backgroundColor: themeProvider.appBarBackgroundColor,
-            iconTheme: IconThemeData(
-              color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // Make column take minimum space
+        children: [
+          // Handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
-          body: SingleChildScrollView(
-            child: Column(
+
+          // Title
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                // Header Section
-                Container(
-                  width: double.infinity,
-                  margin: EdgeInsets.all(16),
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: themeProvider.cardBackgroundColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: themeProvider.isDarkMode
-                        ? Border.all(color: AppTheme.neonBlue.withOpacity(0.3))
-                        : null,
-                    boxShadow: themeProvider.isDarkMode
-                        ? [
-                            BoxShadow(
-                              color: AppTheme.neonBlue.withOpacity(0.2),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 10,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.explore,
-                        size: 50,
-                        color: themeProvider.primaryColor,
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Explore More Features',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: themeProvider.textColor,
-                        ),
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        'Discover additional services and activities',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: themeProvider.textSecondaryColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                Icon(
+                  Icons.apps,
+                  // This icon will change color based on the current app theme's primary color
+                  color: Theme.of(context).colorScheme.primary,
+
+                  size: 32, // Increased icon size
+                ),
+                const SizedBox(width: 16), // Increased spacing
+                const Text(
+                  'More Options',
+                  style: TextStyle(
+                    fontSize: 28, // Increased font size
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                
-                // Options Grid
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.1,
-                    ),
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      final option = options[index];
-                      return _buildOptionCard(
-                        context,
-                        option['title'],
-                        option['subtitle'],
-                        option['icon'],
-                        option['color'],
-                        themeProvider,
-                      );
-                    },
-                  ),
-                ),
-                
-                SizedBox(height: 20),
-                
-                // Quick Actions
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: themeProvider.cardBackgroundColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: themeProvider.isDarkMode
-                        ? Border.all(color: AppTheme.neonBlue.withOpacity(0.3))
-                        : null,
-                    boxShadow: themeProvider.isDarkMode
-                        ? [
-                            BoxShadow(
-                              color: AppTheme.neonBlue.withOpacity(0.2),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 10,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: themeProvider.isDarkMode
-                              ? LinearGradient(colors: [Colors.black, Color(0xFF1A1A1A)])
-                              : LinearGradient(colors: [themeProvider.primaryColor, Color(0xFF3b82f6)]),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.flash_on, 
-                              color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Quick Actions',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            _buildQuickAction(
-                              'Emergency Contact',
-                              'Contact campus security',
-                              Icons.emergency,
-                              themeProvider.isDarkMode ? Color(0xFFFF6B6B) : Colors.red,
-                              () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Emergency: +91 9876543210'),
-                                    backgroundColor: themeProvider.isDarkMode ? Color(0xFFFF6B6B) : Colors.red,
-                                  ),
-                                );
-                              },
-                              themeProvider,
-                            ),
-                            SizedBox(height: 12),
-                            _buildQuickAction(
-                              'IT Support',
-                              'Technical help and support',
-                              Icons.support,
-                              themeProvider.primaryColor,
-                              () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('IT Support: support@sastra.edu'),
-                                    backgroundColor: themeProvider.primaryColor,
-                                  ),
-                                );
-                              },
-                              themeProvider,
-                            ),
-                            SizedBox(height: 12),
-                            _buildQuickAction(
-                              'Feedback',
-                              'Share your feedback',
-                              Icons.feedback,
-                              themeProvider.isDarkMode ? Color(0xFFFFD93D) : Colors.orange,
-                              () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Feedback form opened'),
-                                    backgroundColor: themeProvider.isDarkMode ? Color(0xFFFFD93D) : Colors.orange,
-                                  ),
-                                );
-                              },
-                              themeProvider,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                SizedBox(height: 20),
               ],
             ),
+          ).animate().slideY(begin: -0.3, end: 0), // Animation for title
+
+          // Options Grid
+          Flexible( // Use Flexible to allow the GridView to take available height but not overflow
+            child: Container(
+              constraints: BoxConstraints(
+                // Limit max height to 70% of screen height to prevent overflow on smaller screens
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
+              child: GridView.builder(
+                shrinkWrap: true, // Important for nested scrollables
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 20, // Increased spacing
+                  mainAxisSpacing: 20, // Increased spacing
+                  childAspectRatio: 1.2, // Adjusted aspect ratio for better card size
+                ),
+                itemCount: _options.length,
+                itemBuilder: (context, index) {
+                  final option = _options[index];
+                  return _buildOptionCard(context, option, index);
+                },
+              ),
+            ),
           ),
-        );
-      },
+
+          const SizedBox(height: 20), // Spacing at the bottom
+        ],
+      ),
     );
   }
 
-  Widget _buildOptionCard(BuildContext context, String title, String subtitle, IconData icon, Color color, ThemeProvider themeProvider) {
+  Widget _buildOptionCard(BuildContext context, Map<String, dynamic> option, int index) {
+    // Explicitly cast the dynamic 'color' to Color to ensure type safety
+    final Color cardColor = option['color'] as Color;
+
     return GestureDetector(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$title feature coming soon!'),
-            backgroundColor: color,
-          ),
-        );
-      },
+      onTap: () => _handleOptionTap(context, option['route']),
       child: Container(
         decoration: BoxDecoration(
-          color: themeProvider.cardBackgroundColor,
+          color: cardColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
-          border: themeProvider.isDarkMode
-              ? Border.all(color: color.withOpacity(0.3))
-              : null,
-          boxShadow: themeProvider.isDarkMode
-              ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.2),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
+          border: Border.all(
+            color: cardColor.withOpacity(0.3),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: cardColor.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 60,
-              height: 60,
+              padding: const EdgeInsets.all(20), // Increased padding around icon
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.8)],
-                ),
+                color: cardColor.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(15),
-                boxShadow: themeProvider.isDarkMode
-                    ? [
-                        BoxShadow(
-                          color: color.withOpacity(0.5),
-                          blurRadius: 15,
-                          spreadRadius: 3,
-                        ),
-                      ]
-                    : null,
               ),
               child: Icon(
-                icon,
-                size: 30,
-                color: themeProvider.isDarkMode ? Colors.black : Colors.white,
+                option['icon'],
+                size: 40, // Increased icon size
+                color: cardColor, // This color is specific to the card, not the theme's primary color
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 16), // Increased spacing
             Text(
-              title,
+              option['title'],
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 16, // Increased font size
                 fontWeight: FontWeight.bold,
-                color: themeProvider.textColor,
+                color: cardColor,
               ),
+              textAlign: TextAlign.center,
             ),
-            SizedBox(height: 4),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: themeProvider.textSecondaryColor,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 6), // Increased spacing
+            Text(
+              option['subtitle'],
+              style: TextStyle(
+                fontSize: 12, // Increased font size
+                color: Colors.grey.shade600,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
+      ).animate().scale( // Animation for each card
+        delay: (index * 50).ms, // Staggered animation
+        curve: Curves.elasticOut,
       ),
     );
   }
 
-  Widget _buildQuickAction(String title, String subtitle, IconData icon, Color color, VoidCallback onTap, ThemeProvider themeProvider) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: themeProvider.isDarkMode 
-              ? color.withOpacity(0.1)
-              : color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: color.withOpacity(0.3),
+  void _handleOptionTap(BuildContext context, String route) {
+
+    Navigator.pop(context);
+
+    switch (route) {
+      case 'internals':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => InternalsPage()),
+        );
+        break;
+      case 'credits':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreditsScreen()),
+        );
+        break;
+      case 'about_team':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => AboutTeamScreen()),
+        );
+        break;
+      case 'sgpa':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CgpaCalculatorPage()), // Ensure const for stateless
+        );
+        break; // Added break for 'sgpa' case
+
+      /*case 'clubs':
+      case 'library':
+      case 'transport':
+      case 'events':
+      case 'settings':
+      case 'help':*/
+      default: // Catches any routes not explicitly handled above
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${route.replaceAll('_', ' ').toUpperCase()} feature coming soon!'),
+            backgroundColor: Colors.blue,
+            behavior: SnackBarBehavior.floating, // Makes it float above content
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), // Rounded corners
+            margin: const EdgeInsets.all(16), // Margin from edges for floating snackbar
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.8)],
-                ),
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: themeProvider.isDarkMode
-                    ? [
-                        BoxShadow(
-                          color: color.withOpacity(0.5),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Icon(
-                icon,
-                color: themeProvider.isDarkMode ? Colors.black : Colors.white,
-                size: 20,
-              ),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: themeProvider.textColor,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: themeProvider.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: color,
-            ),
-          ],
-        ),
-      ),
-    );
+        );
+        break;
+    }
   }
 }

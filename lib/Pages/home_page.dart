@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
       CalendarPage(regNo: widget.regNo,),
       CommunityPage(),
       MessMenuPage(),
-      MoreOptionsPage(),
+      MoreOptionsScreen(),
     ];
   }
 
@@ -316,4 +316,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
+
+
 }
+

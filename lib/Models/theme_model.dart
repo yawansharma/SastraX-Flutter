@@ -14,6 +14,125 @@ class AppTheme {
   static const Color primaryBlue = Color(0xFF1e3a8a);
   static const Color navyBlue = Color(0xFF1e3a8a);
 
+  //colours for credit page
+
+  static const Color primaryPurple = Color(0xFF6C63FF);
+  //static const Color navyBlue = Color(0xFF1A237E);
+  static const Color skyBlue = Color(0xFF87CEEB);
+  static const Color accentAqua = Color(0xFF00BCD4);
+  static const Color successGreen = Color(0xFF4CAF50);
+  static const Color errorRed = Color(0xFFE53E3E);
+  static const Color warningOrange = Color(0xFFFF9800);
+  static const Color backgroundLight = Color(0xFFF8F9FA);
+  static const Color textDarkBlue = Color(0xFF2D3748);
+ // static const Color neonBlue = Color(0xFF00E5FF);
+
+
+
+  //For credits
+
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryPurple, accentAqua],
+  );
+
+  static const LinearGradient navyGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [navyBlue, Color(0xFF303F9F)],
+  );
+
+  static const LinearGradient skyGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [skyBlue, Color(0xFFE0F6FF)],
+  );
+
+  // Text Styles
+  static const TextStyle titleLarge = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: textDarkBlue,
+  );
+
+  static const TextStyle titleMedium = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: textDarkBlue,
+  );
+
+  static const TextStyle bodyLarge = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.normal,
+    color: textDarkBlue,
+  );
+
+  static const TextStyle bodyMedium = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
+    color: textDarkBlue,
+  );
+
+  static const TextStyle bodySmall = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    color: textDarkBlue,
+  );
+
+  // Box Shadows
+  static List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.1),
+      blurRadius: 10,
+      offset: const Offset(0, 5),
+    ),
+  ];
+
+  static List<BoxShadow> elevatedShadow = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.15),
+      blurRadius: 20,
+      offset: const Offset(0, 10),
+    ),
+  ];
+
+
+// FOR SGPA CALCULATOR
+
+  //static const Color primaryBlue = Color(0xFF9CAB92); // Light blue background
+  static const Color accentBlue = Color(0xFF4A8BF7); // Darker blue for buttons
+  //static const Color textDarkBlue = Color(0xFF2C3E50); // Dark text color
+  static const Color buttonTextColor = Colors.white;
+
+  static const TextStyle titleTextStyle = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: textDarkBlue,
+  );
+
+  static const TextStyle buttonTextStyle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: buttonTextColor,
+  );
+
+  static const TextStyle resultTextStyle = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: textDarkBlue,
+  );
+
+  static const TextStyle labelTextStyle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: textDarkBlue,
+  );
+
+
+
+
+
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
@@ -32,6 +151,21 @@ class AppTheme {
       ),
     );
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   static ThemeData get darkTheme {
     return ThemeData(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/theme_model.dart';
+import 'more_options_page.dart';
 
 class InternalsPage extends StatelessWidget {
   final List<Map<String, dynamic>> subjects = [
@@ -82,6 +83,7 @@ class InternalsPage extends StatelessWidget {
       builder: (context, themeProvider, child) {
         return Scaffold(
           backgroundColor: themeProvider.backgroundColor,
+
           appBar: AppBar(
             title: Text(
               'Internal Marks',
@@ -90,9 +92,11 @@ class InternalsPage extends StatelessWidget {
                 color: themeProvider.isDarkMode ? AppTheme.neonBlue : Colors.white,
               ),
             ),
-            backgroundColor: themeProvider.appBarBackgroundColor,
-            iconTheme: IconThemeData(
-              color: themeProvider.isDarkMode ? AppTheme.neonBlue : Colors.white,
+            backgroundColor: AppTheme.primaryPurple,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MoreOptionsScreen())),
             ),
           ),
           body: SingleChildScrollView(

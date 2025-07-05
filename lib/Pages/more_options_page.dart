@@ -29,7 +29,7 @@ class MoreOptionsPage extends StatelessWidget {
       'color': Colors.brown,
     },
     {
-      'title': 'calculator',
+      'title': 'Calculator',
       'subtitle': 'SGPA predictor',
       'icon': Icons.calculate_sharp,
       'color': Colors.lightGreen,

@@ -80,7 +80,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             child: ClipOval(
                               child: Image.network(
-                                'https://dna-attitude-per-eds.trycloudflare.com/profilePic?t=${DateTime.now().millisecondsSinceEpoch}',
+                                'https://sastrax-backend-api-production.up.railway.app/profilePic?t=${DateTime.now().millisecondsSinceEpoch}',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) => Icon(
                                   Icons.person,

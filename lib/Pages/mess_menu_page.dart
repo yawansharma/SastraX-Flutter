@@ -1,52 +1,63 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// lib/pages/mess_menu_page.dart
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+
 import '../models/theme_model.dart';
 
 class MessMenuPage extends StatefulWidget {
   @override
-  _MessMenuPageState createState() => _MessMenuPageState();
+  State<MessMenuPage> createState() => _MessMenuPageState();
 }
 
 class _MessMenuPageState extends State<MessMenuPage> {
-  late PageController _pageController;
-  List<dynamic> fullMenu = [];
-  List<dynamic> filteredMenu = [];
-  String selectedWeek = "1";
+  final List<String> weekDays =
+  ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-  final List<String> weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  String selectedDay = '';
+  late final PageController _pageController;
 
-  final int currentDayIndex = DateTime.now().weekday % 7;
-  final int currentWeek =
-      ((DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays ~/ 7) % 4) + 1;
+  List<dynamic> _fullMenu = [];   // raw API
+  List<dynamic> _filtered = [];   // week‑filtered & sorted
+  bool isLoading = true;
 
+  String selectedWeek = '1';
+  String selectedDayAbbr = 'SUN';
+
+  /* ───────────── init ───────────── */
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: currentDayIndex);
-    selectedWeek = currentWeek.toString();
-    selectedDay = weekDays[currentDayIndex];
-    fetchMessMenu();
+
+    final todayIdx = DateTime.now().weekday % 7; // Sun=0
+    selectedDayAbbr = weekDays[todayIdx];
+    _pageController = PageController(initialPage: todayIdx);
+
+    selectedWeek = (((DateTime.now()
+        .difference(DateTime(DateTime.now().year, 1, 1))
+        .inDays ~/ 7) %
+        4) +
+        1)
+        .toString();
+
+    _fetchMenu();
   }
 
-  Future<void> fetchMessMenu() async {
+  /* ───────────── API fetch ───────────── */
+  Future<void> _fetchMenu() async {
     try {
-      final res = await http.get(
-        Uri.parse('https://dna-attitude-per-eds.trycloudflare.com/messMenu'),
-      );
-      if (res.statusCode == 200) {
-        setState(() {
-          fullMenu = json.decode(res.body);
-          filterMenuByWeek(selectedWeek);
-        });
-      } else {
+      final res = await http.get(Uri.parse(
+          'https://relevance-reported-consulting-prices.trycloudflare.com/messMenu'));
+
+      if (res.statusCode != 200) {
         throw Exception('HTTP ${res.statusCode}');
       }
+
+      _fullMenu = jsonDecode(res.body);
+      _applyWeekFilter();
     } catch (e) {
-      debugPrint('Error fetching mess menu → $e');
       if (mounted) {
+        setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Couldn’t load menu: $e')),
         );
@@ -54,45 +65,53 @@ class _MessMenuPageState extends State<MessMenuPage> {
     }
   }
 
-  void filterMenuByWeek(String week) {
-    setState(() {
-      selectedWeek = week;
-      filteredMenu = fullMenu.where((d) => d['week'] == week).toList();
+  /* filter + jump after first frame */
+  void _applyWeekFilter() {
+    _filtered = _fullMenu
+        .where((d) => d['week'] == selectedWeek)
+        .toList()
+      ..sort((a, b) =>
+          _dayIndex(a['day']).compareTo(_dayIndex(b['day'])));
+
+    setState(() => isLoading = false);
+
+    // Jump AFTER first frame so PageView is attached
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final todayPos = _filtered.indexWhere((d) =>
+          d['day']
+              .toString()
+              .toUpperCase()
+              .startsWith(selectedDayAbbr[0]));
+
+      if (_pageController.hasClients && todayPos != -1) {
+        _pageController.jumpToPage(todayPos);
+      }
     });
   }
 
-  String _bg(String title) {
-    switch (title) {
-      case 'Breakfast':
-        return 'assets/images/sunrise.jpg';
-      case 'Lunch':
-        return 'assets/images/sunshine.jpg';
-      case 'Snacks':
-        return 'assets/images/sunset.jpg';
-      case 'Dinner':
-        return 'assets/images/moon.jpg';
-      default:
-        return '';
-    }
-  }
+  int _dayIndex(String day) =>
+      weekDays.indexOf(day.substring(0, 3).toUpperCase());
 
+  /* ───────────── UI ───────────── */
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (_, theme, __) => Scaffold(
         backgroundColor: theme.backgroundColor,
-        body: filteredMenu.isEmpty
+        body: isLoading
             ? const Center(child: CircularProgressIndicator())
+            : _filtered.isEmpty
+            ? const Center(child: Text('No menu found for this week'))
             : Column(
           children: [
             const SizedBox(height: 50),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  _buildDayRow(theme, 0, 4), // SUN - WED
+                  _dayRow(theme, 0, 4),
                   const SizedBox(height: 10),
-                  _buildDayRow(theme, 4, 7), // THU - SAT
+                  _dayRow(theme, 4, 7),
                 ],
               ),
             ),
@@ -100,17 +119,22 @@ class _MessMenuPageState extends State<MessMenuPage> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(), // disable swiping
-                itemCount: filteredMenu.length,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _filtered.length,
                 itemBuilder: (_, idx) {
-                  final day = filteredMenu[idx];
+                  final day = _filtered[idx];
                   return ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     children: [
-                      _mealCard('Breakfast', day['breakfast'].join(', '), theme),
-                      _mealCard('Lunch', day['lunch'].join(', '), theme),
-                      _mealCard('Snacks', day['snacks'].join(', '), theme),
-                      _mealCard('Dinner', day['dinner'].join(', '), theme),
+                      _mealCard('Breakfast',
+                          day['breakfast'].join(', '), theme),
+                      _mealCard('Lunch',
+                          day['lunch'].join(', '), theme),
+                      _mealCard('Snacks',
+                          day['snacks'].join(', '), theme),
+                      _mealCard('Dinner',
+                          day['dinner'].join(', '), theme),
                     ],
                   );
                 },
@@ -122,38 +146,42 @@ class _MessMenuPageState extends State<MessMenuPage> {
     );
   }
 
-  Widget _buildDayRow(ThemeProvider theme, int start, int end) {
+  /* ------------ day selector row ------------ */
+  Widget _dayRow(ThemeProvider theme, int start, int end) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: weekDays.sublist(start, end).map((dayAbbr) {
-        final int index = weekDays.indexOf(dayAbbr);
-        final bool isSelected = selectedDay == dayAbbr;
-
+      children: weekDays.sublist(start, end).map((abbr) {
+        final isSel = selectedDayAbbr == abbr;
         return Expanded(
           child: GestureDetector(
             onTap: () {
-              setState(() {
-                selectedDay = dayAbbr;
-                _pageController.jumpToPage(index);
-              });
+              final newPage = _filtered.indexWhere((d) =>
+                  d['day'].toString().toUpperCase().startsWith(abbr[0]));
+              if (newPage != -1) {
+                setState(() => selectedDayAbbr = abbr);
+                if (_pageController.hasClients) {
+                  _pageController.jumpToPage(newPage);
+                }
+              }
             },
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? (theme.isDarkMode ? Colors.amber[300] : Colors.blueAccent)
+                color: isSel
+                    ? (theme.isDarkMode
+                    ? Colors.amber[300]
+                    : Colors.blueAccent)
                     : theme.cardBackgroundColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
                 child: Text(
-                  dayAbbr,
+                  abbr,
                   style: TextStyle(
-                    color: isSelected
+                    fontWeight: FontWeight.bold,
+                    color: isSel
                         ? (theme.isDarkMode ? Colors.black : Colors.white)
                         : theme.textColor,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -164,29 +192,36 @@ class _MessMenuPageState extends State<MessMenuPage> {
     );
   }
 
+  /* ------------ meal card ------------ */
   Widget _mealCard(String title, String menu, ThemeProvider theme) {
-    final Map<String, dynamic> palette = {
+    final palette = {
       'Breakfast': {
-        'color': theme.isDarkMode ? const Color(0xFFFFD93D) : Colors.orange[300],
-        'icon': Icons.wb_sunny
+        'color': theme.isDarkMode
+            ? const Color(0xFFFFD93D)
+            : Colors.orange[300],
+        'icon': Icons.wb_sunny,
+        'bg': 'assets/images/sunrise.jpg'
       },
       'Lunch': {
-        'color': theme.isDarkMode ? AppTheme.neonBlue : Colors.green[300],
-        'icon': Icons.lunch_dining
+        'color':
+        theme.isDarkMode ? AppTheme.neonBlue : Colors.green[300],
+        'icon': Icons.lunch_dining,
+        'bg': 'assets/images/sunshine.jpg'
       },
       'Snacks': {
-        'color': theme.isDarkMode ? const Color(0xFFFF6B6B) : Colors.purple[300],
-        'icon': Icons.local_cafe
+        'color': theme.isDarkMode
+            ? const Color(0xFFFF6B6B)
+            : Colors.purple[300],
+        'icon': Icons.local_cafe,
+        'bg': 'assets/images/sunset.jpg'
       },
       'Dinner': {
-        'color': theme.isDarkMode ? AppTheme.electricBlue : Colors.blue[300],
-        'icon': Icons.dinner_dining
-      }
-    };
-
-    final Color cardColor = palette[title]?['color'] as Color? ??
-        (theme.isDarkMode ? Colors.grey[700]! : Colors.grey[300]!);
-    final IconData icon = palette[title]?['icon'] as IconData? ?? Icons.restaurant;
+        'color':
+        theme.isDarkMode ? AppTheme.electricBlue : Colors.blue[300],
+        'icon': Icons.dinner_dining,
+        'bg': 'assets/images/moon.jpg'
+      },
+    }[title]!;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -194,12 +229,19 @@ class _MessMenuPageState extends State<MessMenuPage> {
       decoration: BoxDecoration(
         color: theme.cardBackgroundColor,
         borderRadius: BorderRadius.circular(20),
-        border: theme.isDarkMode ? Border.all(color: cardColor.withOpacity(0.3)) : null,
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
+        border: theme.isDarkMode
+            ? Border.all(
+            color: (palette['color'] as Color).withOpacity(0.3))
+            : null,
+        boxShadow: const [
+          BoxShadow(
+              color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))
+        ],
         image: DecorationImage(
-          image: AssetImage(_bg(title)),
+          image: AssetImage(palette['bg'] as String),
           fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken),
+          colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.4), BlendMode.darken),
         ),
       ),
       child: Padding(
@@ -211,11 +253,12 @@ class _MessMenuPageState extends State<MessMenuPage> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: cardColor,
+                color: palette['color'] as Color,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon,
-                  color: theme.isDarkMode ? Colors.black : Colors.white, size: 25),
+              child: Icon(palette['icon'] as IconData,
+                  color: theme.isDarkMode ? Colors.black : Colors.white,
+                  size: 25),
             ),
             const SizedBox(width: 15),
             Expanded(
@@ -224,12 +267,13 @@ class _MessMenuPageState extends State<MessMenuPage> {
                 children: [
                   Text(title,
                       style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                   const SizedBox(height: 8),
-                  SelectableText(
-                    menu,
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
-                  ),
+                  SelectableText(menu,
+                      style:
+                      const TextStyle(fontSize: 14, color: Colors.white)),
                 ],
               ),
             ),

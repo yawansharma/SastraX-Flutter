@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _pages = [
       DashboardScreen(regNo: widget.regNo),
-      CalendarPage(),
+      CalendarPage(regNo: widget.regNo,),
       CommunityPage(),
       MessMenuPage(),
       MoreOptionsPage(),
@@ -44,15 +44,17 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (_, theme, __) => Scaffold(
-        backgroundColor:
-        theme.isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground,
+        backgroundColor: theme.isDarkMode
+            ? AppTheme.darkBackground
+            : AppTheme.lightBackground,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leading: Image.asset('assets/icon/LogoIcon.png'),
           title: const Text('SastraX', style: TextStyle(fontWeight: FontWeight.bold)),
           centerTitle: true,
-          backgroundColor:
-          theme.isDarkMode ? AppTheme.darkBackground : AppTheme.primaryBlue,
+          backgroundColor: theme.isDarkMode
+              ? AppTheme.darkBackground
+              : AppTheme.primaryBlue,
           elevation: 0,
           actions: [
             Padding(
@@ -69,7 +71,8 @@ class _HomePageState extends State<HomePage> {
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
           type: BottomNavigationBarType.fixed,
-          backgroundColor: theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
+          backgroundColor:
+          theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
           selectedItemColor:
           theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
           unselectedItemColor: Colors.grey,
@@ -111,7 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchAttendance() async {
     try {
-      final res = await http.get(Uri.parse('http://10.0.2.2:3000/attendance'));
+      final res = await http.get(Uri.parse('https://relevance-reported-consulting-prices.trycloudflare.com/attendance'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final raw = data['attendanceHTML'] as String? ?? '0%';
@@ -133,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchCGPA() async {
     try {
-      final res = await http.get(Uri.parse('https://dna-attitude-per-eds.trycloudflare.com/cgpa'));
+      final res = await http.get(Uri.parse('https://relevance-reported-consulting-prices.trycloudflare.com/cgpa'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final cgpaList = data['cgpaData'];
@@ -277,14 +280,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           : Colors.orange),
                                   const SizedBox(height: 4),
                                   const Text('GPA',
-                                      style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
+                                      style: TextStyle(fontWeight: FontWeight.bold)),
                                   isCgpaLoading
                                       ? const SizedBox(
                                     height: 16,
                                     width: 16,
-                                    child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(strokeWidth: 2),
                                   )
                                       : Text('$cgpa / 10',
                                       style: TextStyle(
@@ -305,72 +306,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 20),
+
+          // ✅ Timetable container – adaptive & no overflow
           NeonContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Today’s Schedule',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: theme.isDarkMode
-                            ? AppTheme.neonBlue
-                            : AppTheme.primaryBlue)),
-                const SizedBox(height: 16),
-                _scheduleItem(context, '9:00 AM – 10:00 AM', 'Mathematics', 'Room 101'),
-                _scheduleItem(context, '10:15 AM – 11:15 AM', 'Physics', 'Lab 2'),
-                _scheduleItem(context, '11:30 AM – 12:30 PM', 'Computer Science', 'Room 205'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            decoration: BoxDecoration(
-              color: theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: SizedBox(
-              height: 400,
-              child: TimetableWidget(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _scheduleItem(BuildContext context, String time, String subject, String room) {
-    final theme = Provider.of<ThemeProvider>(context, listen: false);
-    final dark = theme.isDarkMode;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 40,
-            decoration: BoxDecoration(
-              color: dark ? AppTheme.neonBlue : AppTheme.primaryBlue,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(time, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('$subject · $room'),
-              ],
-            ),
+            padding: EdgeInsets.zero,
+            child: TimetableWidget(), // Your timetable should use shrinkWrap internally
           ),
         ],
       ),

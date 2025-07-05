@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   String? passwordErrorMessage;
   String? captchaErrorMessage;
 
-  String captchaBaseUrl = 'https://dna-attitude-per-eds.trycloudflare.com';
+  String captchaBaseUrl = 'https://relevance-reported-consulting-prices.trycloudflare.com';
   late String captchaUrl;
 
   @override
@@ -31,8 +31,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _refreshCaptcha();
 
-    userController.addListener(()
-    {
+    userController.addListener(() {
       if (userController.text.isNotEmpty) {
         setState(() => userErrorMessage = null);
       }
@@ -81,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
-        Navigator.pop(context); // Close CAPTCHA dialog
+        Navigator.pop(context); // Close dialog
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => HomePage(regNo: userController.text)),
@@ -138,7 +137,11 @@ class _LoginPageState extends State<LoginPage> {
                               child: SizedBox(
                                 width: 180,
                                 height: 50,
-                                child: CachedNetworkImage(
+                                child:
+                                // You can test with Image.network too
+                                // Image.network(captchaUrl),
+                                CachedNetworkImage(
+                                  key: ValueKey(captchaUrl), // Forces refresh
                                   imageUrl: captchaUrl,
                                   fit: BoxFit.contain,
                                   placeholder: (context, url) => const Center(

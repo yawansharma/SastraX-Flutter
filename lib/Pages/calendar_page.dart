@@ -1,8 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/theme_model.dart';
 
 class CalendarPage extends StatefulWidget {
+  final String regNo; // ✅ user-specific key
+  const CalendarPage({required this.regNo, Key? key}) : super(key: key);
+
   @override
   _CalendarPageState createState() => _CalendarPageState();
 }
@@ -10,103 +17,65 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  Map<DateTime, List<String>> _events = {};
-  TextEditingController _noteController = TextEditingController();
+
+  Map<String, List<String>> _events = {};
+  final TextEditingController _noteController = TextEditingController();
+  late SharedPreferences _prefs;
+
+  late String _storageKey; // ✅ Dynamic storage key
 
   @override
   void initState() {
     super.initState();
-    _events = {
-      DateTime(2024, 1, 15): ['Assignment Due - Mathematics'],
-      DateTime(2024, 1, 20): ['Project Presentation - Physics'],
-      DateTime(2024, 1, 25): ['Mid-term Exam - Chemistry'],
-    };
+    _storageKey = 'calendar_events_${widget.regNo}'; // ✅ unique per user
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    _prefs = await SharedPreferences.getInstance();
+    final rawJson = _prefs.getString(_storageKey);
+    if (rawJson != null) {
+      final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
+      _events = decoded.map((key, value) =>
+          MapEntry(key, List<String>.from(value as List)));
+      setState(() {});
+    } else {
+      _events = {
+        '2024-01-15': ['Assignment Due - Mathematics'],
+        '2024-01-20': ['Project Presentation - Physics'],
+        '2024-01-25': ['Mid-term Exam - Chemistry'],
+      };
+    }
+  }
+
+  Future<void> _saveEvents() async {
+    await _prefs.setString(_storageKey, jsonEncode(_events));
   }
 
   List<String> _getEventsForDay(DateTime day) {
-    DateTime key = DateTime(day.year, day.month, day.day);
+    final key = _keyFromDate(day);
     return _events[key] ?? [];
   }
 
   void _addNote(DateTime day, String note) {
+    final key = _keyFromDate(day);
     setState(() {
-      DateTime key = DateTime(day.year, day.month, day.day);
-      if (_events.containsKey(key)) {
-        _events[key]!.add(note);
-      } else {
-        _events[key] = [note];
-      }
+      _events.putIfAbsent(key, () => []).add(note);
     });
+    _saveEvents();
   }
 
-  void _showAddNoteDialog(ThemeProvider themeProvider) {
-    _noteController.clear();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: themeProvider.cardBackgroundColor,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          top: 20,
-          left: 20,
-          right: 20,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _noteController,
-                style: TextStyle(color: themeProvider.textColor),
-                decoration: InputDecoration(
-                  hintText: 'Enter your note...',
-                  hintStyle: TextStyle(color: themeProvider.textSecondaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(color: themeProvider.primaryColor),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(color: themeProvider.primaryColor, width: 2),
-                  ),
-                ),
-                maxLines: 3,
-              ),
-              SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text('Cancel', style: TextStyle(color: themeProvider.textSecondaryColor)),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_noteController.text.isNotEmpty) {
-                        _addNote(_selectedDay, _noteController.text.trim());
-                        Navigator.pop(context);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: themeProvider.primaryColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text('Add', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _deleteNote(DateTime day, String note) {
+    final key = _keyFromDate(day);
+    setState(() {
+      _events[key]?.remove(note);
+      if (_events[key]?.isEmpty ?? false) _events.remove(key);
+    });
+    _saveEvents();
   }
+
+  String _keyFromDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
@@ -116,183 +85,9 @@ class _CalendarPageState extends State<CalendarPage> {
           backgroundColor: themeProvider.backgroundColor,
           body: Column(
             children: [
-              Container(
-                margin: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: themeProvider.cardBackgroundColor,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: themeProvider.isDarkMode
-                          ? AppTheme.neonBlue.withOpacity(0.2)
-                          : Colors.black12,
-                      blurRadius: 10,
-                      offset: Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1);
-                              });
-                            },
-                            icon: Icon(Icons.chevron_left, color: themeProvider.primaryColor),
-                          ),
-                          Text(
-                            '${_getMonthName(_focusedDay.month)} ${_focusedDay.year}',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: themeProvider.textColor,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1);
-                              });
-                            },
-                            icon: Icon(Icons.chevron_right, color: themeProvider.primaryColor),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Container(
-                        height: 200,
-                        child: _buildSimpleCalendar(themeProvider),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: themeProvider.cardBackgroundColor,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: themeProvider.isDarkMode
-                            ? AppTheme.neonBlue.withOpacity(0.2)
-                            : Colors.black12,
-                        blurRadius: 10,
-                        offset: Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [
-                            themeProvider.primaryColor,
-                            Color(0xFF3b82f6),
-                          ]),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.event_note, color: Colors.white),
-                            SizedBox(width: 8),
-                            Text(
-                              'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: _getEventsForDay(_selectedDay).isEmpty
-                                  ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.event_busy, size: 50, color: themeProvider.textSecondaryColor),
-                                    SizedBox(height: 10),
-                                    Text('No events for this day', style: TextStyle(color: themeProvider.textSecondaryColor)),
-                                  ],
-                                ),
-                              )
-                                  : ListView.builder(
-                                padding: EdgeInsets.all(16),
-                                itemCount: _getEventsForDay(_selectedDay).length,
-                                itemBuilder: (context, index) {
-                                  final event = _getEventsForDay(_selectedDay)[index];
-                                  return Container(
-                                    margin: EdgeInsets.only(bottom: 8),
-                                    padding: EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: themeProvider.primaryColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.event, color: themeProvider.primaryColor),
-                                        SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            event,
-                                            style: TextStyle(color: themeProvider.textColor),
-                                          ),
-                                        ),
-                                        IconButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              DateTime key = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
-                                              _events[key]?.remove(event);
-                                              if (_events[key]?.isEmpty == true) {
-                                                _events.remove(key);
-                                              }
-                                            });
-                                          },
-                                          icon: const Icon(Icons.delete, color: Colors.red),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: ElevatedButton.icon(
-                                onPressed: () => _showAddNoteDialog(themeProvider),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: themeProvider.primaryColor,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                                icon: Icon(Icons.add, color: Colors.white),
-                                label: Text('Add Event', style: TextStyle(color: Colors.white)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
+              _buildCalendarCard(themeProvider),
+              Expanded(child: _buildEventsCard(themeProvider)),
+              const SizedBox(height: 16),
             ],
           ),
         );
@@ -300,60 +95,160 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  Widget _buildSimpleCalendar(ThemeProvider themeProvider) {
-    final firstDayOfMonth = DateTime(_focusedDay.year, _focusedDay.month, 1);
-    final lastDayOfMonth = DateTime(_focusedDay.year, _focusedDay.month + 1, 0);
-    final firstWeekday = firstDayOfMonth.weekday;
-    final daysInMonth = lastDayOfMonth.day;
+  Widget _buildCalendarCard(ThemeProvider theme) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: _boxDecoration(theme),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _navIcon(Icons.chevron_left, () {
+                  setState(() =>
+                  _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1));
+                }, theme),
+                Text(
+                  '${_monthName(_focusedDay.month)} ${_focusedDay.year}',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: theme.textColor),
+                ),
+                _navIcon(Icons.chevron_right, () {
+                  setState(() =>
+                  _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1));
+                }, theme),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(height: 200, child: _buildMiniCalendar(theme)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventsCard(ThemeProvider theme) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: _boxDecoration(theme),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient:
+              LinearGradient(colors: [theme.primaryColor, const Color(0xFF3b82f6)]),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.event_note, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: _getEventsForDay(_selectedDay).isEmpty
+                      ? _emptyState(theme)
+                      : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _getEventsForDay(_selectedDay).length,
+                    itemBuilder: (_, idx) {
+                      final event = _getEventsForDay(_selectedDay)[idx];
+                      return _eventTile(event, theme);
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.primaryColor,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                    onPressed: () => _showAddNoteDialog(theme),
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    label: const Text('Add Event',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniCalendar(ThemeProvider theme) {
+    final first = DateTime(_focusedDay.year, _focusedDay.month, 1);
+    final last = DateTime(_focusedDay.year, _focusedDay.month + 1, 0);
+    final firstWeekday = first.weekday;
+    final daysInMonth = last.day;
 
     return Column(
       children: [
         Row(
           children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-              .map((day) => Expanded(
-            child: Center(
-              child: Text(
-                day,
-                style: TextStyle(fontWeight: FontWeight.bold, color: themeProvider.textSecondaryColor),
-              ),
-            ),
-          ))
+              .map((d) => Expanded(
+              child: Center(
+                  child: Text(d,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.textSecondaryColor)))))
               .toList(),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Expanded(
           child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
             itemCount: 42,
-            itemBuilder: (context, index) {
-              final dayOffset = index - (firstWeekday - 1);
+            itemBuilder: (_, idx) {
+              final dayOffset = idx - (firstWeekday - 1);
               if (dayOffset < 1 || dayOffset > daysInMonth) return Container();
-              final currentDate = DateTime(_focusedDay.year, _focusedDay.month, dayOffset);
-              final isSelected = _isSameDay(currentDate, _selectedDay);
-              final isToday = _isSameDay(currentDate, DateTime.now());
-              final hasEvents = _getEventsForDay(currentDate).isNotEmpty;
+              final current = DateTime(_focusedDay.year, _focusedDay.month, dayOffset);
+              final isToday = _isSameDay(current, DateTime.now());
+              final isSel = _isSameDay(current, _selectedDay);
+              final hasEvt = _getEventsForDay(current).isNotEmpty;
 
               return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedDay = currentDate;
-                  });
-                },
+                onTap: () => setState(() => _selectedDay = current),
                 child: Container(
-                  margin: EdgeInsets.all(2),
+                  margin: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    color: isSelected ? themeProvider.primaryColor : isToday ? themeProvider.primaryColor.withOpacity(0.2) : Colors.transparent,
+                    color: isSel
+                        ? theme.primaryColor
+                        : isToday
+                        ? theme.primaryColor.withOpacity(0.2)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
-                    border: hasEvents ? Border.all(color: Colors.orange, width: 2) : null,
+                    border: hasEvt
+                        ? Border.all(color: Colors.orange, width: 2)
+                        : null,
                   ),
                   child: Center(
-                    child: Text(
-                      dayOffset.toString(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : isToday ? themeProvider.primaryColor : themeProvider.textColor,
-                      ),
-                    ),
+                    child: Text('$dayOffset',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isSel
+                                ? Colors.white
+                                : isToday
+                                ? theme.primaryColor
+                                : theme.textColor)),
                   ),
                 ),
               );
@@ -364,15 +259,121 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
+  Widget _eventTile(String event, ThemeProvider theme) => Container(
+    margin: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+        color: theme.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8)),
+    child: Row(
+      children: [
+        Icon(Icons.event, color: theme.primaryColor),
+        const SizedBox(width: 10),
+        Expanded(child: Text(event, style: TextStyle(color: theme.textColor))),
+        IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          onPressed: () => _deleteNote(_selectedDay, event),
+        )
+      ],
+    ),
+  );
 
-  String _getMonthName(int month) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[month - 1];
+  Widget _emptyState(ThemeProvider theme) => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.event_busy, size: 50, color: theme.textSecondaryColor),
+        const SizedBox(height: 10),
+        Text('No events for this day',
+            style: TextStyle(color: theme.textSecondaryColor)),
+      ],
+    ),
+  );
+
+  BoxDecoration _boxDecoration(ThemeProvider t) => BoxDecoration(
+    color: t.cardBackgroundColor,
+    borderRadius: BorderRadius.circular(20),
+    boxShadow: [
+      BoxShadow(
+          color: t.isDarkMode
+              ? AppTheme.neonBlue.withOpacity(0.2)
+              : Colors.black12,
+          blurRadius: 10,
+          offset: const Offset(0, 5))
+    ],
+  );
+
+  IconButton _navIcon(IconData icon, VoidCallback cb, ThemeProvider t) =>
+      IconButton(icon: Icon(icon, color: t.primaryColor), onPressed: cb);
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _monthName(int m) => const [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ][m - 1];
+
+  void _showAddNoteDialog(ThemeProvider theme) {
+    _noteController.clear();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.cardBackgroundColor,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(
+            controller: _noteController,
+            maxLines: 3,
+            style: TextStyle(color: theme.textColor),
+            decoration: InputDecoration(
+              hintText: 'Enter your note...',
+              hintStyle: TextStyle(color: theme.textSecondaryColor),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: theme.primaryColor)),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide:
+                  BorderSide(color: theme.primaryColor, width: 2)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel',
+                    style: TextStyle(color: theme.textSecondaryColor))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10))),
+              onPressed: () {
+                if (_noteController.text.trim().isNotEmpty) {
+                  _addNote(_selectedDay, _noteController.text.trim());
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Add', style: TextStyle(color: Colors.white)),
+            )
+          ])
+        ]),
+      ),
+    );
   }
 }

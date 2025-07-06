@@ -6,7 +6,7 @@ import '../models/theme_model.dart';
 
 class CalendarPage extends StatefulWidget {
   final String regNo;
-  const CalendarPage({required this.regNo, Key? key}) : super(key: key);
+  const CalendarPage({required this.regNo, super.key});
 
   @override
   _CalendarPageState createState() => _CalendarPageState();
@@ -69,9 +69,11 @@ class _CalendarPageState extends State<CalendarPage> {
     _saveEvents();
   }
 
-  String _keyFromDate(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  String _keyFromDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   String _monthName(int m) => const [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -142,7 +144,10 @@ class _CalendarPageState extends State<CalendarPage> {
       children: [
         Row(
           children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-              .map((d) => Expanded(child: Center(child: Text(d, style: TextStyle(fontWeight: FontWeight.bold, color: theme.textSecondaryColor)))))
+              .map((d) => Expanded(
+              child: Center(
+                  child: Text(d,
+                      style: TextStyle(fontWeight: FontWeight.bold, color: theme.textSecondaryColor)))))
               .toList(),
         ),
         const SizedBox(height: 8),
@@ -173,7 +178,9 @@ class _CalendarPageState extends State<CalendarPage> {
                   border: hasEvt ? Border.all(color: Colors.orange, width: 2) : null,
                 ),
                 child: Center(
-                  child: Text('$dayOffset', style: TextStyle(fontWeight: FontWeight.w600, color: isSel ? Colors.white : theme.textColor)),
+                  child: Text('$dayOffset',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, color: isSel ? Colors.white : theme.textColor)),
                 ),
               ),
             );
@@ -279,7 +286,8 @@ class _CalendarPageState extends State<CalendarPage> {
     ],
   );
 
-  IconButton _navIcon(IconData icon, VoidCallback cb, ThemeProvider t) => IconButton(icon: Icon(icon, color: t.primaryColor), onPressed: cb);
+  IconButton _navIcon(IconData icon, VoidCallback cb, ThemeProvider t) =>
+      IconButton(icon: Icon(icon, color: t.primaryColor), onPressed: cb);
 
   void _showAddNoteDialog(ThemeProvider theme) {
     _noteController.clear();
@@ -287,43 +295,63 @@ class _CalendarPageState extends State<CalendarPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: theme.cardBackgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => Padding(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _noteController,
-              maxLines: 3,
-              style: TextStyle(color: theme.textColor),
-              decoration: InputDecoration(
-                hintText: 'Enter your note...',
-                hintStyle: TextStyle(color: theme.textSecondaryColor),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: theme.primaryColor, width: 2)),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)), // clamp system font
+          child: Padding(
+            padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _noteController,
+                    maxLines: 3,
+                    style: TextStyle(color: theme.textColor),
+                    decoration: InputDecoration(
+                      hintText: 'Enter your note...',
+                      hintStyle: TextStyle(color: theme.textSecondaryColor),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(color: theme.primaryColor, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Cancel', style: TextStyle(color: theme.textSecondaryColor)),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.primaryColor,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          if (_noteController.text.trim().isNotEmpty) {
+                            _addNote(_selectedDay, _noteController.text.trim());
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: const Text('Add', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  )
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel', style: TextStyle(color: theme.textSecondaryColor))),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: theme.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                  onPressed: () {
-                    if (_noteController.text.trim().isNotEmpty) {
-                      _addNote(_selectedDay, _noteController.text.trim());
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text('Add', style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

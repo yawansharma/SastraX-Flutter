@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:confetti/confetti.dart';
 import 'package:provider/provider.dart';
 
 import '../Components/timetable_widget.dart';
@@ -43,8 +45,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (_, theme, __) => Scaffold(
-        backgroundColor:
-        theme.isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground,
+        backgroundColor: theme.isDarkMode
+            ? AppTheme.darkBackground
+            : AppTheme.lightBackground,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leading: Image.asset('assets/icon/LogoIcon.png'),
@@ -68,8 +71,7 @@ class _HomePageState extends State<HomePage> {
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
           type: BottomNavigationBarType.fixed,
-          backgroundColor:
-          theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
+          backgroundColor: theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
           selectedItemColor:
           theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
           unselectedItemColor: Colors.grey,
@@ -101,18 +103,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int totalClasses = 0;
   String? cgpa;
   bool isCgpaLoading = true;
+  bool isBirthday = false;
+  bool _birthdayChecked = false;
+
+  late ConfettiController _confettiController;
 
   @override
   void initState() {
     super.initState();
     _fetchAttendance();
     _fetchCGPA();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_birthdayChecked) {
+      _checkBirthday();
+      _birthdayChecked = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkBirthday() async {
+    try {
+      final res = await http.get(
+        Uri.parse(
+          'https://relevance-reported-consulting-prices.trycloudflare.com/dob?regNo=${widget.regNo}',
+        ),
+      );
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final dob = data['dobData']?[0]?['dob'];
+        if (dob != null && dob.isNotEmpty) {
+          final parsed = DateFormat('dd-MM-yyyy').parse(dob);
+          final today = DateTime.now();
+
+          if (parsed.day == today.day && parsed.month == today.month) {
+            setState(() => isBirthday = true);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _confettiController.play();
+            });
+          }
+        }
+      } else {
+        setState(() => isBirthday = false);
+      }
+    } catch (_) {
+      setState(() => isBirthday = false);
+    }
   }
 
   Future<void> _fetchAttendance() async {
     try {
-      final res = await http.get(
-          Uri.parse('https://relevance-reported-consulting-prices.trycloudflare.com/attendance'));
+      final res = await http.get(Uri.parse('https://relevance-reported-consulting-prices.trycloudflare.com/attendance'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final raw = data['attendanceHTML'] as String? ?? '0%';
@@ -134,8 +185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchCGPA() async {
     try {
-      final res = await http.get(
-          Uri.parse('https://relevance-reported-consulting-prices.trycloudflare.com/cgpa'));
+      final res = await http.get(Uri.parse('https://relevance-reported-consulting-prices.trycloudflare.com/cgpa'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final cgpaList = data['cgpaData'];
@@ -163,127 +213,153 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .floor()
         .clamp(0, totalClasses);
 
-    return CustomScrollView(
-      slivers: [
-        // ─── Welcome Card ───────────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => ProfilePage(regNo: widget.regNo)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: NeonContainer(
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor:
-                      theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
-                      child: Icon(Icons.person,
-                          color: theme.isDarkMode ? Colors.black : Colors.white),
+    return Stack(
+      children: [
+        CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProfilePage(regNo: widget.regNo)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: NeonContainer(
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: theme.isDarkMode
+                              ? AppTheme.neonBlue
+                              : AppTheme.primaryBlue,
+                          child: Icon(Icons.person,
+                              color: theme.isDarkMode ? Colors.black : Colors.white),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isBirthday)
+                                MediaQuery.withClampedTextScaling(
+                                  minScaleFactor: 1.0,
+                                  maxScaleFactor: 1.0,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '🎉 Happy Birthday! 🎉',
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  'Welcome Back!',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.isDarkMode
+                                        ? AppTheme.neonBlue
+                                        : AppTheme.primaryBlue,
+                                  ),
+                                ),
+                              Text('Student Dashboard',
+                                  style: TextStyle(
+                                      color: theme.isDarkMode
+                                          ? Colors.white70
+                                          : Colors.grey[600]))
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Welcome Back!',
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.isDarkMode
-                                      ? AppTheme.neonBlue
-                                      : AppTheme.primaryBlue)),
-                          Text('Student Dashboard',
-                              style: TextStyle(
-                                  color: theme.isDarkMode
-                                      ? Colors.white70
-                                      : Colors.grey[600]))
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverToBoxAdapter(
+                child: NeonContainer(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                  child: attendancePercent < 0
+                      ? const Center(child: CircularProgressIndicator())
+                      : AttendancePieChart(
+                    attendancePercentage: attendancePercent,
+                    attendedClasses: attendedClasses,
+                    totalClasses: totalClasses,
+                    bunkingDaysLeft: bunkLeft,
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                delegate: SliverChildListDelegate.fixed([
+                  _buildAssignmentsTile(theme),
+                  _buildGpaFeeTile(theme),
+                ]),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 210,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.0,
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              sliver: SliverToBoxAdapter(
+                child: NeonContainer(
+                  padding: EdgeInsets.zero,
+                  child: TimetableWidget(),
+                ),
+              ),
+            ),
+          ],
         ),
-
-        // ─── Attendance Card ────────────────────────────────────────────
-        SliverPadding(
-          padding: const EdgeInsets.all(16),
-          sliver: SliverToBoxAdapter(
-            child: NeonContainer(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-              child: attendancePercent < 0
-                  ? const Center(child: CircularProgressIndicator())
-                  : AttendancePieChart(
-                attendancePercentage: attendancePercent,
-                attendedClasses: attendedClasses,
-                totalClasses: totalClasses,
-                bunkingDaysLeft: bunkLeft,
+        if (isBirthday)
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                emissionFrequency: 0.05,
+                numberOfParticles: 30,
+                maxBlastForce: 25,
+                minBlastForce: 8,
+                gravity: 0.4,
+                shouldLoop: false,
               ),
             ),
           ),
-        ),
-
-        // ─── Responsive Grid of Small Tiles ─────────────────────────────
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverGrid(
-            delegate: SliverChildListDelegate.fixed([
-              // Assignments Tile
-              _buildAssignmentsTile(theme),
-              // GPA / FeeDue toggle Tile
-              _buildGpaFeeTile(theme),
-            ]),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 210,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.0,
-            ),
-          ),
-        ),
-
-        // ─── Timetable ─────────────────────────────────────────────────
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-          sliver: SliverToBoxAdapter(
-            child: NeonContainer(
-              padding: EdgeInsets.zero,
-              child: TimetableWidget(), // ensure shrinkWrap inside widget
-            ),
-          ),
-        ),
       ],
     );
   }
 
-  // ───────────────────────── Helper Tiles ──────────────────────────────
   Widget _buildAssignmentsTile(ThemeProvider theme) {
-    return LayoutBuilder(
-      builder: (_, __) => NeonContainer(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.assignment_turned_in,
-                size: 32,
-                color:
-                theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue),
-            const SizedBox(height: 6),
-            const Text('Assignments',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            Text('12 Pending',
-                style: TextStyle(
-                    fontSize: 12,
-                    color: theme.isDarkMode ? Colors.white70 : Colors.grey[600])),
-          ],
-        ),
+    return NeonContainer(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.assignment_turned_in,
+              size: 32,
+              color: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue),
+          const SizedBox(height: 6),
+          const Text('Assignments', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text('12 Pending',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: theme.isDarkMode ? Colors.white70 : Colors.grey[600])),
+        ],
       ),
     );
   }
@@ -295,35 +371,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
         duration: const Duration(milliseconds: 300),
         child: showFeeDue
             ? const FeeDueCard(key: ValueKey('fee'), feeDue: 12000)
-            : LayoutBuilder(
+            : NeonContainer(
           key: const ValueKey('gpa'),
-          builder: (_, __) => NeonContainer(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.grade,
-                    size: 24,
-                    color: theme.isDarkMode
-                        ? AppTheme.electricBlue
-                        : Colors.orange),
-                const SizedBox(height: 6),
-                const Text('GPA',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                isCgpaLoading
-                    ? const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-                    : Text('$cgpa / 10',
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: theme.isDarkMode
-                            ? Colors.white70
-                            : Colors.grey[600])),
-              ],
-            ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.grade,
+                  size: 24,
+                  color: theme.isDarkMode
+                      ? AppTheme.electricBlue
+                      : Colors.orange),
+              const SizedBox(height: 6),
+              const Text('GPA', style: TextStyle(fontWeight: FontWeight.bold)),
+              isCgpaLoading
+                  ? const SizedBox(
+                height: 16,
+                width: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+                  : Text('$cgpa / 10',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: theme.isDarkMode
+                          ? Colors.white70
+                          : Colors.grey[600])),
+            ],
           ),
         ),
       ),

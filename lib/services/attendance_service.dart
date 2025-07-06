@@ -23,7 +23,7 @@ class AttendanceSnapshot {
 }
 
 class AttendanceService {
-  static const _base = 'https://sastrax-backend-api-production.up.railway.app';
+  static const _base = 'https://ongoing-disk-ok-dealers.trycloudflare.com';
 
   static Future<AttendanceSnapshot> fetch() async {
     final res = await http.get(Uri.parse('$_base/attendance'));

@@ -26,147 +26,159 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-        return Scaffold(
-          backgroundColor: themeProvider.backgroundColor,
-          body: FutureBuilder<StudentProfile>(
-            future: profileFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                debugPrint('Profile error: ${snapshot.error}');
-                return Center(child: Text('Error: ${snapshot.error.toString()}'));
-              }
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaleFactor: MediaQuery.of(context).textScaleFactor.clamp(1.0, 1.1),
+          ),
+          child: Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.arrow_back)),
+            ),
+            backgroundColor: themeProvider.backgroundColor,
+            body: FutureBuilder<StudentProfile>(
+              future: profileFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  debugPrint('Profile error: ${snapshot.error}');
+                  return Center(child: Text('Error: ${snapshot.error.toString()}'));
+                }
 
-              final student = snapshot.data!;
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: themeProvider.isDarkMode
-                            ? const LinearGradient(colors: [Colors.black, Color(0xFF1A1A1A)])
-                            : const LinearGradient(colors: [Color(0xFF1e3a8a), Color(0xFF3b82f6)]),
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
+                final student = snapshot.data!;
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: themeProvider.isDarkMode
+                              ? const LinearGradient(colors: [Colors.black, Color(0xFF1A1A1A)])
+                              : const LinearGradient(colors: [Color(0xFF1e3a8a), Color(0xFF3b82f6)]),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 20),
+                            Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: themeProvider.isDarkMode
+                                    ? LinearGradient(colors: [themeProvider.primaryColor, AppTheme.electricBlue])
+                                    : LinearGradient(colors: [Colors.white, Colors.blue[100]!]),
+                                border: Border.all(
+                                  color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.blue,
+                                  width: 4,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: themeProvider.isDarkMode
+                                        ? themeProvider.primaryColor.withOpacity(0.5)
+                                        : Colors.black26,
+                                    blurRadius: themeProvider.isDarkMode ? 15 : 10,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.network(
+                                  'https://ongoing-disk-ok-dealers.trycloudflare.com/profilePic?t=${DateTime.now().millisecondsSinceEpoch}',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Icon(
+                                    Icons.person,
+                                    size: 80,
+                                    color: themeProvider.isDarkMode ? Colors.black : const Color(0xFF1e3a8a),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            Text(
+                              student.name ?? "Name Not Available",
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              student.regNo ?? "",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: themeProvider.isDarkMode
+                                    ? themeProvider.textSecondaryColor
+                                    : Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                          ],
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 20),
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: themeProvider.isDarkMode
-                                  ? LinearGradient(colors: [themeProvider.primaryColor, AppTheme.electricBlue])
-                                  : LinearGradient(colors: [Colors.white, Colors.blue[100]!]),
-                              border: Border.all(
-                                color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.blue,
-                                width: 4,
+                      const SizedBox(height: 30),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: [
+                            _buildProfileCard(
+                                'Department',
+                                student.department ?? "",
+                                Icons.school,
+                                themeProvider.primaryColor,
+                                themeProvider),
+                            const SizedBox(height: 15),
+                            _buildProfileCard(
+                                'Semester',
+                                student.semester ?? "",
+                                Icons.calendar_today,
+                                Colors.green,
+                                themeProvider),
+                            const SizedBox(height: 15),
+                            _buildProfileCard(
+                                'Batch',
+                                _getBatch(student.regNo ?? "", student.department ?? ""),
+                                Icons.group,
+                                Colors.orange,
+                                themeProvider),
+                            const SizedBox(height: 15),
+                            _buildProfileCard(
+                                'Email',
+                                _getEmail(student.regNo ?? ""),
+                                Icons.email,
+                                themeProvider.primaryColor,
+                                themeProvider),
+                            const SizedBox(height: 30),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pushReplacement(context,
+                                    MaterialPageRoute(builder: (context) => LoginPage()));
+                              },
+                              icon: const Icon(Icons.logout, color: Colors.white),
+                              label: const Text('Log Out', style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: themeProvider.primaryColor,
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: themeProvider.isDarkMode
-                                      ? themeProvider.primaryColor.withOpacity(0.5)
-                                      : Colors.black26,
-                                  blurRadius: themeProvider.isDarkMode ? 15 : 10,
-                                  offset: const Offset(0, 5),
-                                ),
-                              ],
                             ),
-                            child: ClipOval(
-                              child: Image.network(
-                                'https://sastrax-backend-api-production.up.railway.app/profilePic?t=${DateTime.now().millisecondsSinceEpoch}',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Icon(
-                                  Icons.person,
-                                  size: 80,
-                                  color: themeProvider.isDarkMode ? Colors.black : const Color(0xFF1e3a8a),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-                          Text(
-                            student.name ?? "Name Not Available",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            student.regNo ?? "",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: themeProvider.isDarkMode
-                                  ? themeProvider.textSecondaryColor
-                                  : Colors.white70,
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                        ],
+                            const SizedBox(height: 30),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 30),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
-                          _buildProfileCard(
-                              'Department',
-                              student.department ?? "",
-                              Icons.school,
-                              themeProvider.primaryColor,
-                              themeProvider),
-                          const SizedBox(height: 15),
-                          _buildProfileCard(
-                              'Semester',
-                              student.semester ?? "",
-                              Icons.calendar_today,
-                              Colors.green,
-                              themeProvider),
-                          const SizedBox(height: 15),
-                          _buildProfileCard(
-                              'Batch',
-                              _getBatch(student.regNo ?? "", student.department ?? ""),
-                              Icons.group,
-                              Colors.orange,
-                              themeProvider),
-                          const SizedBox(height: 15),
-                          _buildProfileCard(
-                              'Email',
-                              _getEmail(student.regNo ?? ""),
-                              Icons.email,
-                              themeProvider.primaryColor,
-                              themeProvider),
-                          const SizedBox(height: 30),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.pushReplacement(context,
-                                  MaterialPageRoute(builder: (context) => LoginPage()));
-                            },
-                            icon: const Icon(Icons.logout, color: Colors.white),
-                            label: const Text('Log Out', style: TextStyle(color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: themeProvider.primaryColor,
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         );
       },

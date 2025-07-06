@@ -74,7 +74,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final scale = MediaQuery.textScaleFactorOf(context).clamp(1.0, 1.2);
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
         return Container(
@@ -108,10 +107,11 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     Text(
                       'Today\'s Timetable',
                       style: TextStyle(
-                        fontSize: 20 / scale,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: themeProvider.isDarkMode ? AppTheme.neonBlue : Colors.white,
                       ),
+                      textScaler: TextScaler.linear(1.0),
                     ),
                   ],
                 ),
@@ -171,8 +171,9 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                                     ? Colors.black
                                     : Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14 / scale,
+                                fontSize: 14,
                               ),
+                              textScaler: TextScaler.linear(1.0),
                             ),
                           ),
                         ),
@@ -181,8 +182,9 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: themeProvider.primaryColor,
-                            fontSize: 15 / scale,
+                            fontSize: 15,
                           ),
+                          textScaler: TextScaler.linear(1.0),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,15 +192,19 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                             Text(
                               item['time']!,
                               style: TextStyle(
-                                  color: themeProvider.textSecondaryColor,
-                                  fontSize: 13 / scale),
+                                color: themeProvider.textSecondaryColor,
+                                fontSize: 13,
+                              ),
+                              textScaler: TextScaler.linear(1.0),
                             ),
                             if (item['room']!.isNotEmpty)
                               Text(
                                 item['room']!,
                                 style: TextStyle(
-                                    color: themeProvider.textSecondaryColor,
-                                    fontSize: 11.5 / scale),
+                                  color: themeProvider.textSecondaryColor,
+                                  fontSize: 11.5,
+                                ),
+                                textScaler: TextScaler.linear(1.0),
                               ),
                           ],
                         ),

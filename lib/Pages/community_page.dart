@@ -56,32 +56,6 @@ class _CommunityPageState extends State<CommunityPage> {
       builder: (context, themeProvider, child) {
         return Scaffold(
           backgroundColor: themeProvider.backgroundColor,
-          appBar: AppBar(
-            title: Text(
-              'Community Chat',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
-              ),
-            ),
-            backgroundColor: themeProvider.appBarBackgroundColor,
-            iconTheme: IconThemeData(
-              color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('12 students online'),
-                      backgroundColor: themeProvider.primaryColor,
-                    ),
-                  );
-                },
-                icon: Icon(Icons.info_outline),
-              ),
-            ],
-          ),
           body: Column(
             children: [
               // Chat Messages
@@ -126,8 +100,6 @@ class _CommunityPageState extends State<CommunityPage> {
                   ),
                 ),
               ),
-
-              // Message Input
               Container(
                 margin: EdgeInsets.all(16),
                 decoration: BoxDecoration(

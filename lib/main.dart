@@ -3,13 +3,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'Pages/loginpage.dart';
+import 'firebase_options.dart';
 import 'models/theme_model.dart';
 import 'pages/home_page.dart';
 
 void main() async {
   runApp(MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   @override
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'SASTRAX Student App',
-            theme: themeProvider?.currentTheme,
+            theme: themeProvider.currentTheme,
             home: LoginPage(),
             debugShowCheckedModeBanner: false,
           );

@@ -135,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final res = await http.get(
         Uri.parse(
-          'https://relevance-reported-consulting-prices.trycloudflare.com/dob?regNo=${widget.regNo}',
+          'https://hollywood-millions-pulse-dramatic.trycloudflare.com/dob?regNo=${widget.regNo}',
         ),
       );
 
@@ -163,7 +163,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchAttendance() async {
     try {
-      final res = await http.get(Uri.parse('https://relevance-reported-consulting-prices.trycloudflare.com/attendance'));
+      final res = await http.get(Uri.parse('https://hollywood-millions-pulse-dramatic.trycloudflare.com/attendance'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final raw = data['attendanceHTML'] as String? ?? '0%';
@@ -185,7 +185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchCGPA() async {
     try {
-      final res = await http.get(Uri.parse('https://relevance-reported-consulting-prices.trycloudflare.com/cgpa'));
+      final res = await http.get(Uri.parse('https://hollywood-millions-pulse-dramatic.trycloudflare.com/cgpa'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final cgpaList = data['cgpaData'];

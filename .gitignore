@@ -41,3 +41,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Firebase config files
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Custom Dart file to ignore
+lib/more_options.dart
+lib/UI/more_options.dart
+
+

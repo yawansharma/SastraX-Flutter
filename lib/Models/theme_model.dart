@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppTheme {
   // Neon colors for dark theme
@@ -7,17 +8,15 @@ class AppTheme {
   static const Color neonPurple = Color(0xFF9D00FF);
   static const Color darkBackground = Color(0xFF000000);
   static const Color darkSurface = Color(0xFF1A1A1A);
-  
+
   // Light theme colors
   static const Color lightBackground = Color(0xFF87CEEB);
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color primaryBlue = Color(0xFF1e3a8a);
   static const Color navyBlue = Color(0xFF1e3a8a);
 
-  //colours for credit page
-
+  // Colours for credit page
   static const Color primaryPurple = Color(0xFF6C63FF);
-  //static const Color navyBlue = Color(0xFF1A237E);
   static const Color skyBlue = Color(0xFF87CEEB);
   static const Color accentAqua = Color(0xFF00BCD4);
   static const Color successGreen = Color(0xFF4CAF50);
@@ -25,12 +24,8 @@ class AppTheme {
   static const Color warningOrange = Color(0xFFFF9800);
   static const Color backgroundLight = Color(0xFFF8F9FA);
   static const Color textDarkBlue = Color(0xFF2D3748);
- // static const Color neonBlue = Color(0xFF00E5FF);
 
-
-
-  //For credits
-
+  // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -83,26 +78,22 @@ class AppTheme {
   // Box Shadows
   static List<BoxShadow> cardShadow = [
     BoxShadow(
-      color: Colors.black.withAlpha(0.1 as int),
+      color: Colors.black.withAlpha(25),
       blurRadius: 10,
-      offset: const Offset(0, 5),
+      offset: Offset(0, 5),
     ),
   ];
 
   static List<BoxShadow> elevatedShadow = [
     BoxShadow(
-      color: Colors.black.withAlpha(0.15 as int),
+      color: Colors.black.withAlpha(38),
       blurRadius: 20,
-      offset: const Offset(0, 10),
+      offset: Offset(0, 10),
     ),
   ];
 
-
-// FOR SGPA CALCULATOR
-
-  //static const Color primaryBlue = Color(0xFF9CAB92); // Light blue background
-  static const Color accentBlue = Color(0xFF4A8BF7); // Darker blue for buttons
-  //static const Color textDarkBlue = Color(0xFF2C3E50); // Dark text color
+  // SGPA Calculator
+  static const Color accentBlue = Color(0xFF4A8BF7);
   static const Color buttonTextColor = Colors.white;
 
   static const TextStyle titleTextStyle = TextStyle(
@@ -129,10 +120,6 @@ class AppTheme {
     color: textDarkBlue,
   );
 
-
-
-
-
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
@@ -151,21 +138,6 @@ class AppTheme {
       ),
     );
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   static ThemeData get darkTheme {
     return ThemeData(
@@ -201,9 +173,14 @@ class AppColors {
 class ThemeProvider extends ChangeNotifier {
   bool _isDarkMode = false;
 
+  ThemeProvider() {
+    loadTheme(); // Load saved preference on init
+  }
+
   bool get isDarkMode => _isDarkMode;
+
   ThemeData get currentTheme => _isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme;
-  
+
   // Color getters for easy access
   Color get backgroundColor => _isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground;
   Color get surfaceColor => _isDarkMode ? AppTheme.darkSurface : AppTheme.lightSurface;
@@ -215,8 +192,17 @@ class ThemeProvider extends ChangeNotifier {
   Color get textSecondaryColor => _isDarkMode ? Colors.white70 : Colors.grey[600]!;
   Color get iconColor => _isDarkMode ? Colors.grey : Colors.grey[600]!;
 
-  void toggleTheme() {
+  void toggleTheme() async {
     _isDarkMode = !_isDarkMode;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', _isDarkMode);
+  }
+
+  void loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isDarkMode = prefs.getBool('isDarkMode') ?? false;
     notifyListeners();
   }
 }

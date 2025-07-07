@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:confetti/confetti.dart';
 import 'package:provider/provider.dart';
-
+import 'subject_wise_attendance.dart';
 import '../Components/timetable_widget.dart';
 import '../models/theme_model.dart';
 import '../components/theme_toggle_button.dart';
@@ -288,14 +288,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: NeonContainer(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                   child: attendancePercent < 0
-                      ? const Center(child: CircularProgressIndicator())
-                      : AttendancePieChart(
-                    attendancePercentage: attendancePercent,
-                    attendedClasses: attendedClasses,
-                    totalClasses: totalClasses,
-                    bunkingDaysLeft: bunkLeft,
-                  ),
-                ),
+                ? const Center(child: CircularProgressIndicator())
+      : GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => SubjectWiseAttendancePage()),
+          ),
+          child: AttendancePieChart(
+            attendancePercentage: attendancePercent,
+            attendedClasses: attendedClasses,
+            totalClasses: totalClasses,
+            bunkingDaysLeft: bunkLeft,
+          ),
+        ),
+),
+
               ),
             ),
             SliverPadding(

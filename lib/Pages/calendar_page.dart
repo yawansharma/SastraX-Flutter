@@ -256,7 +256,19 @@ class _CalendarPageState extends State<CalendarPage> {
       children: [
         Icon(Icons.event, color: theme.primaryColor),
         const SizedBox(width: 10),
-        Expanded(child: Text(event, style: TextStyle(color: theme.textColor))),
+        Expanded(
+          child: Text(
+            event,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: theme.textColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          ),
+        ),
         IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () => _deleteNote(_selectedDay, event),
@@ -301,7 +313,7 @@ class _CalendarPageState extends State<CalendarPage> {
       builder: (context) {
         final mediaQuery = MediaQuery.of(context);
         return MediaQuery(
-          data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)), // clamp system font
+          data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
           child: Padding(
             padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
             child: SingleChildScrollView(

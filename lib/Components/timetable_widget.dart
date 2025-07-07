@@ -146,8 +146,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         ),
                       ),
                       child: ListTile(
-                        contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         leading: Container(
                           width: 50,
                           height: 40,
@@ -167,9 +166,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                             child: Text(
                               '${index + 1}',
                               style: TextStyle(
-                                color: themeProvider.isDarkMode
-                                    ? Colors.black
-                                    : Colors.white,
+                                color: themeProvider.isDarkMode ? Colors.black : Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -189,22 +186,36 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              item['time']!,
-                              style: TextStyle(
-                                color: themeProvider.textSecondaryColor,
-                                fontSize: 13,
-                              ),
-                              textScaler: TextScaler.linear(1.0),
-                            ),
-                            if (item['room']!.isNotEmpty)
-                              Text(
-                                item['room']!,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                item['time']!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: false,
                                 style: TextStyle(
                                   color: themeProvider.textSecondaryColor,
-                                  fontSize: 11.5,
+                                  fontSize: 13,
                                 ),
                                 textScaler: TextScaler.linear(1.0),
+                              ),
+                            ),
+                            if (item['room']!.isNotEmpty)
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  item['room']!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: false,
+                                  style: TextStyle(
+                                    color: themeProvider.textSecondaryColor,
+                                    fontSize: 11.5,
+                                  ),
+                                  textScaler: TextScaler.linear(1.0),
+                                ),
                               ),
                           ],
                         ),

@@ -205,17 +205,11 @@ class _OptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color color = data['color'] as Color;
-    final scale = MediaQuery.of(context).textScaleFactor;
 
     return GestureDetector(
       onTap: onTap,
       child: LayoutBuilder(
         builder: (ctx, constraints) {
-          final w = constraints.maxWidth;
-          final iconSize = min(48.0, w * 0.35) / scale;
-          final titleSize = min(20.0, w * 0.18) / scale;
-          final subtitleSize = min(14.0, w * 0.13) / scale;
-
           return Container(
             decoration: BoxDecoration(
               color: color.withOpacity(0.10),
@@ -229,46 +223,50 @@ class _OptionCard extends StatelessWidget {
                 ),
               ],
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(iconSize * 0.5),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.20),
-                    borderRadius: BorderRadius.circular(15),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10),
+            child: FittedBox( // ✅ NEW
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.20),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(
+                      data['icon'],
+                      size: 36,
+                      color: color,
+                    ),
                   ),
-                  child: Icon(data['icon'], size: iconSize, color: color),
-                ),
-                const SizedBox(height: 10),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
+                  const SizedBox(height: 10),
+                  Text(
                     data['title'],
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: titleSize,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: color,
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
+                  const SizedBox(height: 4),
+                  Text(
                     data['subtitle'],
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: subtitleSize,
+                      fontSize: 12,
                       color: Colors.grey.shade600,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ).animate().scale(
-              delay: (index * 50).ms, curve: Curves.elasticOut, duration: 400.ms);
+              delay: (index * 50).ms,
+              curve: Curves.elasticOut,
+              duration: 400.ms);
         },
       ),
     );

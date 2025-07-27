@@ -32,9 +32,6 @@ class _MessMenuPageState extends State<MessMenuPage> {
     selectedWeek = weekOfMonth(now).toString(); // 1‑4
     _fetchMenu();
   }
-
-  /// Week number inside the month (1‑5) using Sunday‑based weeks
-  /// Then mod 4 so you always get 1‑4 (matches your API)
   int weekOfMonth(DateTime date) {
     final firstDay = DateTime(date.year, date.month, 1);
     final before = firstDay.weekday % 7;            // days before the 1st in week 1
@@ -45,7 +42,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
   Future<void> _fetchMenu() async {
     try {
       final res = await http.get(Uri.parse(
-          'https://hollywood-millions-pulse-dramatic.trycloudflare.com/messMenu'));
+          'https://feel-commercial-managed-laws.trycloudflare.com/messMenu'));
 
       if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
 
@@ -62,10 +59,6 @@ class _MessMenuPageState extends State<MessMenuPage> {
   }
 
   void _applyWeekFilter() {
-    /* // Debug
-    print('🔎 want week $selectedWeek, day $selectedDayAbbr');
-    */
-
     _filtered = _fullMenu
         .where((d) => d['week'].toString() == selectedWeek) // ← cast to string
         .toList()
@@ -85,9 +78,6 @@ class _MessMenuPageState extends State<MessMenuPage> {
   int _dayIndex(String day) =>
       weekDays.indexOf(day.substring(0, 3).toUpperCase());
 
-  /* ---------------------------------------------------------------------- */
-  /* ----------------------------  UI  ----------------------------------- */
-  /* ---------------------------------------------------------------------- */
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(

@@ -135,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final res = await http.get(
         Uri.parse(
-          'https://hollywood-millions-pulse-dramatic.trycloudflare.com/dob?regNo=${widget.regNo}',
+          'https://feel-commercial-managed-laws.trycloudflare.com/dob?regNo=${widget.regNo}',
         ),
       );
 
@@ -163,9 +163,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchAttendance() async {
     try {
-      final res = await http.get(Uri.parse('https://hollywood-millions-pulse-dramatic.trycloudflare.com/attendance'));
+      final res = await http.post(
+        Uri.parse('https://feel-commercial-managed-laws.trycloudflare.com/attendance'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
+      );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
+        if (data['success'] != true || data['attendanceHTML'] == null) {
+          throw Exception("Invalid attendance data");
+        }
+
         final raw = data['attendanceHTML'] as String? ?? '0%';
         final percentMatch = RegExp(r'(\d+(?:\.\d+)?)\s*%').firstMatch(raw);
         final pairMatch = RegExp(r'\(\s*(\d+)\s*/\s*(\d+)\s*\)').firstMatch(raw);
@@ -185,10 +193,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchCGPA() async {
     try {
-      final res = await http.get(Uri.parse('https://hollywood-millions-pulse-dramatic.trycloudflare.com/cgpa'));
+      final res = await http.post(
+        Uri.parse('https://feel-commercial-managed-laws.trycloudflare.com/cgpa'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh': false}),
+      );
+
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        final cgpaList = data['cgpaData'];
+        final cgpaList = data['cgpaData'] ?? data['cgpa'];
         if (cgpaList != null && cgpaList.isNotEmpty) {
           setState(() {
             cgpa = cgpaList[0]['cgpa'];
@@ -288,21 +301,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: NeonContainer(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                   child: attendancePercent < 0
-                ? const Center(child: CircularProgressIndicator())
-      : GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => SubjectWiseAttendancePage()),
-          ),
-          child: AttendancePieChart(
-            attendancePercentage: attendancePercent,
-            attendedClasses: attendedClasses,
-            totalClasses: totalClasses,
-            bunkingDaysLeft: bunkLeft,
-          ),
-        ),
-),
-
+                      ? const Center(child: CircularProgressIndicator())
+                      : GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => SubjectWiseAttendancePage()),
+                    ),
+                    child: AttendancePieChart(
+                      attendancePercentage: attendancePercent,
+                      attendedClasses: attendedClasses,
+                      totalClasses: totalClasses,
+                      bunkingDaysLeft: bunkLeft,
+                    ),
+                  ),
+                ),
               ),
             ),
             SliverPadding(
@@ -325,7 +337,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               sliver: SliverToBoxAdapter(
                 child: NeonContainer(
                   padding: EdgeInsets.zero,
-                  child: TimetableWidget(),
+                  child: TimetableWidget(regNo: widget.regNo),
                 ),
               ),
             ),

@@ -1,54 +1,141 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/theme_model.dart';
 
 class TimetableWidget extends StatefulWidget {
+  final String regNo;
+  const TimetableWidget({super.key, required this.regNo});
+
   @override
   _TimetableWidgetState createState() => _TimetableWidgetState();
 }
 
 class _TimetableWidgetState extends State<TimetableWidget> {
   final ScrollController _scrollController = ScrollController();
-
-  final List<Map<String, String>> timetable = [
-    {'time': '8:45 AM - 9:45 AM', 'subject': 'CA', 'room': 'Room 101'},
-    {'time': '9:45 AM - 10:45 AM', 'subject': 'CO', 'room': 'Lab 2'},
-    {'time': '10:45 AM - 11:00 AM', 'subject': 'Break', 'room': ''},
-    {'time': '11:00 AM - 12:00 PM', 'subject': 'CN', 'room': 'Room 205'},
-    {'time': '12:00 PM - 1:00 PM', 'subject': 'Computer Science', 'room': 'Lab 1'},
-    {'time': '1:00 PM - 2:00 PM', 'subject': 'Lunch Break', 'room': ''},
-    {'time': '2:00 PM - 3:00 PM', 'subject': 'OS', 'room': 'Room 301'},
-    {'time': '3:00 PM - 3:15 PM', 'subject': 'Break', 'room': ''},
-    {'time': '3:15 PM - 4:15 PM', 'subject': 'DAA', 'room': 'Lab 3'},
-    {'time': '4:15 PM - 5:00 PM', 'subject': 'DBMS', 'room': 'Room 102'},
-  ];
-
+  List<Map<String, String>> timetable = [];
   int? currentIndex;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    currentIndex = _getCurrentIndex();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (currentIndex != null && _scrollController.hasClients) {
-        _scrollController.animateTo(
-          currentIndex! * 85.0,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
+    fetchTimetable();
+  }
+
+  bool _isEmptySchedule(Map<String, dynamic> schedule) {
+    return schedule.entries.every((entry) {
+      final value = entry.value.toString().trim().toLowerCase();
+      return value == 'n/a' || value == 'break' || value.isEmpty;
     });
   }
 
+  Future<void> fetchTimetable() async {
+    try {
+      final today = DateTime.now(); // Use actual current date
+      final dayIndex = today.weekday - 1; // 0 = Monday, 6 = Sunday
+
+      final res = await http.post(
+        Uri.parse("https://feel-commercial-managed-laws.trycloudflare.com/timetable"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
+      );
+
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        final timetableList = data['timetable'] as List?;
+
+        if (data['success'] != true || timetableList == null || timetableList.isEmpty) {
+          throw Exception("Invalid timetable data");
+        }
+
+        final Map<String, dynamic> todayData = timetableList[dayIndex];
+
+        if (_isEmptySchedule(todayData)) {
+          setState(() {
+            timetable = [];
+            isLoading = false;
+          });
+          return;
+        }
+
+        final List<Map<String, String>> transformedTimetable = [];
+        final timeSlots = [
+          '08:45 - 09:45',
+          '09:45 - 10:45',
+          '10:45 - 11:00',
+          '11:00 - 12:00',
+          '12:00 - 01:00',
+          '01:00 - 02:00',
+          '02:00 - 03:00',
+          '03:00 - 03:15',
+          '03:15 - 04:15',
+          '04:15 - 05:15',
+          '05:30 - 06:30',
+          '06:30 - 07:30',
+          '07:30 - 08:30',
+        ];
+
+        for (final slot in timeSlots) {
+          final subject = todayData[slot] ?? 'N/A';
+          String room = '';
+          String cleanSubject = subject;
+          final roomMatch = RegExp(r'\((.*?)\)').firstMatch(subject);
+          if (roomMatch != null) {
+            room = roomMatch.group(1)!;
+            cleanSubject = subject.replaceAll(roomMatch.group(0)!, '').trim();
+          }
+
+          final parts = slot.split(' - ');
+          final formatter = DateFormat('h:mm a');
+          final startTime = DateFormat('HH:mm').parse(parts[0]);
+          final endTime = DateFormat('HH:mm').parse(parts[1]);
+          final formattedTime = '${formatter.format(startTime)} - ${formatter.format(endTime)}';
+
+          transformedTimetable.add({
+            'time': formattedTime,
+            'subject': cleanSubject,
+            'room': room,
+          });
+        }
+
+        setState(() {
+          timetable = transformedTimetable;
+          currentIndex = _getCurrentIndex();
+          isLoading = false;
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (currentIndex != null && _scrollController.hasClients) {
+              _scrollController.animateTo(
+                currentIndex! * 85.0,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+              );
+            }
+          });
+        });
+      } else {
+        print('Failed to fetch timetable: status=${res.statusCode}');
+        throw Exception("Failed to fetch timetable: ${res.statusCode}");
+      }
+    } catch (e) {
+      print('Error fetching timetable: $e');
+      setState(() {
+        timetable = [];
+        isLoading = false;
+      });
+    }
+  }
   int? _getCurrentIndex() {
-    final now = DateTime.now();
-    final formatter = DateFormat('h:mm a');
+    final now = DateTime.now(); // 03:53 PM IST
+    final formatter = DateTime.now();
     for (int i = 0; i < timetable.length; i++) {
       try {
         final parts = timetable[i]['time']!.split(' - ');
-        final start = formatter.parse(parts[0]);
-        final end = formatter.parse(parts[1]);
+        final start = DateTime.parse(parts[0]);
+        final end = DateTime.parse(parts[1]);
         final startTime = DateTime(now.year, now.month, now.day, start.hour, start.minute);
         final endTime = DateTime(now.year, now.month, now.day, end.hour, end.minute);
         if (now.isAfter(startTime) && now.isBefore(endTime)) return i;
@@ -59,7 +146,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
   bool _isCurrentSlot(String timeRange) {
     try {
-      final now = DateTime.now();
+      final now = DateTime.now(); // 03:53 PM IST
       final formatter = DateFormat('h:mm a');
       final parts = timeRange.split(' - ');
       final start = formatter.parse(parts[0]);
@@ -116,128 +203,143 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   ],
                 ),
               ),
-              SizedBox(
-                height: 300,
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: timetable.length,
-                  itemBuilder: (context, index) {
-                    final item = timetable[index];
-                    final isBreak = item['subject']!.contains('Break');
-                    final isCurrent = _isCurrentSlot(item['time']!);
+              if (isLoading)
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: CircularProgressIndicator(),
+                )
+              else if (timetable.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Text('No timetable available today.'),
+                )
+              else
+                SizedBox(
+                  height: 300,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: timetable.length,
+                    itemBuilder: (context, index) {
+                      final item = timetable[index];
+                      final isBreak = item['subject']!.contains('Break');
+                      final isCurrent = _isCurrentSlot(item['time']!);
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: themeProvider.isDarkMode
-                              ? (isBreak
-                              ? [Color(0xFF2A1810), Color(0xFF3A2418)]
-                              : [Color(0xFF0A1A2A), Color(0xFF152A3A)])
-                              : (isBreak
-                              ? [Colors.orange[50]!, Colors.orange[100]!]
-                              : [Colors.blue[50]!, Colors.blue[100]!]),
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: isCurrent ? Colors.cyanAccent : Colors.transparent,
-                          width: isCurrent ? 3 : 1,
-                        ),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        leading: Container(
-                          width: 50,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: themeProvider.isDarkMode
-                                  ? (isBreak
-                                  ? [Color(0xFFFFD93D), Color(0xFFFFE55C)]
-                                  : [AppTheme.neonBlue, AppTheme.electricBlue])
-                                  : (isBreak
-                                  ? [Colors.orange[400]!, Colors.orange[600]!]
-                                  : [Colors.blue[400]!, Colors.blue[600]!]),
-                            ),
-                            borderRadius: BorderRadius.circular(12),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: themeProvider.isDarkMode
+                                ? (isBreak
+                                ? [Color(0xFF2A1810), Color(0xFF3A2418)]
+                                : [Color(0xFF0A1A2A), Color(0xFF152A3A)])
+                                : (isBreak
+                                ? [Colors.orange[50]!, Colors.orange[100]!]
+                                : [Colors.blue[50]!, Colors.blue[100]!]),
                           ),
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                color: themeProvider.isDarkMode ? Colors.black : Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: isCurrent ? Colors.cyanAccent : Colors.transparent,
+                            width: isCurrent ? 3 : 1,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          leading: Container(
+                            width: 50,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: themeProvider.isDarkMode
+                                    ? (isBreak
+                                    ? [Color(0xFFFFD93D), Color(0xFFFFE55C)]
+                                    : [AppTheme.neonBlue, AppTheme.electricBlue])
+                                    : (isBreak
+                                    ? [Colors.orange[400]!, Colors.orange[600]!]
+                                    : [Colors.blue[400]!, Colors.blue[600]!]),
                               ),
-                              textScaler: TextScaler.linear(1.0),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ),
-                        ),
-                        title: Text(
-                          item['subject']!,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: themeProvider.primaryColor,
-                            fontSize: 15,
-                          ),
-                          textScaler: TextScaler.linear(1.0),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
+                            child: Center(
                               child: Text(
-                                item['time']!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                softWrap: false,
+                                '${index + 1}',
                                 style: TextStyle(
-                                  color: themeProvider.textSecondaryColor,
-                                  fontSize: 13,
+                                  color: themeProvider.isDarkMode ? Colors.black : Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
                                 ),
                                 textScaler: TextScaler.linear(1.0),
                               ),
                             ),
-                            if (item['room']!.isNotEmpty)
+                          ),
+                          title: Text(
+                            item['subject']!,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: themeProvider.primaryColor,
+                              fontSize: 15,
+                            ),
+                            textScaler: TextScaler.linear(1.0),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  item['room']!,
+                                  item['time']!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
                                   style: TextStyle(
                                     color: themeProvider.textSecondaryColor,
-                                    fontSize: 11.5,
+                                    fontSize: 13,
                                   ),
                                   textScaler: TextScaler.linear(1.0),
                                 ),
                               ),
-                          ],
+                              if (item['room']!.isNotEmpty)
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    item['room']!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: themeProvider.textSecondaryColor,
+                                      fontSize: 11.5,
+                                    ),
+                                    textScaler: TextScaler.linear(1.0),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          trailing: Icon(
+                            isBreak ? Icons.free_breakfast : Icons.book,
+                            color: isBreak
+                                ? (themeProvider.isDarkMode
+                                ? Color(0xFFFFD93D)
+                                : Colors.orange[600])
+                                : (themeProvider.isDarkMode
+                                ? AppTheme.neonBlue
+                                : Colors.blue[600]),
+                          ),
                         ),
-                        trailing: Icon(
-                          isBreak ? Icons.free_breakfast : Icons.book,
-                          color: isBreak
-                              ? (themeProvider.isDarkMode
-                              ? Color(0xFFFFD93D)
-                              : Colors.orange[600])
-                              : (themeProvider.isDarkMode
-                              ? AppTheme.neonBlue
-                              : Colors.blue[600]),
-                        ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
             ],
           ),
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }

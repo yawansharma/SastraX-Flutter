@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sastra_x/Pages/home_page.dart';
 import '../models/theme_model.dart';
 
 class CommunityPage extends StatefulWidget {
@@ -56,6 +57,24 @@ class _CommunityPageState extends State<CommunityPage> {
       builder: (context, themeProvider, child) {
         return Scaffold(
           backgroundColor: themeProvider.backgroundColor,
+          
+          appBar: AppBar(
+            title: const Text(
+              '',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: AppTheme.primaryBlue,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(regNo: "regNo"))),
+            ),
+          ),
+          
+          
           body: Column(
             children: [
               // Chat Messages

@@ -13,9 +13,19 @@ class AboutTeamScreen extends StatelessWidget {
     {
       'name': 'Amulya',
       'role': 'Team Lead',
-      'avatar': 'A',
+      'avatar': 'Amulya', // This will be displayed as text "A"
       'color': AppTheme.primaryPurple,
       'description': 'Drives the vision and keeps us on track.',
+      'instagram': 'https://instagram.com/',
+      'linkedin': 'https://linkedin.com/',
+      'medium': 'https://medium.com/'
+    },
+    {
+      'name': 'Yashwanth',
+      'role': 'Technical Head',
+      'avatar': 'Yash', // This will be displayed as an image
+      'color': AppTheme.primaryPurple,
+      'description': 'The creative force behind the app.',
       'instagram': 'https://instagram.com/',
       'linkedin': 'https://linkedin.com/',
       'medium': 'https://medium.com/'
@@ -145,6 +155,9 @@ class AboutTeamScreen extends StatelessWidget {
 
   Widget _buildTeamMemberCard(
       Map<String, dynamic> m, int index, double avatarSize, double scale) {
+    // Check if the avatar is a file path (starts with 'assets/')
+    final bool isImage = m['avatar'].toString().startsWith('assets/');
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -158,31 +171,56 @@ class AboutTeamScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: avatarSize,
-                  height: avatarSize,
-                  decoration: BoxDecoration(
-                    color: m['color'],
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: m['color'].withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
+                // Conditional logic to display either an image or a text avatar
+                if (isImage)
+                  Container(
+                    width: avatarSize,
+                    height: avatarSize,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: m['color'].withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                      image: DecorationImage(
+                        image: AssetImage(m['avatar']),
+                        fit: BoxFit.cover,
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(m['avatar'],
-                        style: TextStyle(
-                            fontSize: 28 / scale,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
-                  ),
-                ).animate().scale(
-                    delay: (200 + index * 100).ms,
-                    curve: Curves.elasticOut,
-                    duration: 400.ms),
+                    ),
+                  ).animate().scale(
+                      delay: (200 + index * 100).ms,
+                      curve: Curves.elasticOut,
+                      duration: 400.ms)
+                else
+                  Container(
+                    width: avatarSize,
+                    height: avatarSize,
+                    decoration: BoxDecoration(
+                      color: m['color'],
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: m['color'].withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                          (m['avatar'] as String).substring(0, 1),
+                          style: TextStyle(
+                              fontSize: 28 / scale,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
+                    ),
+                  ).animate().scale(
+                      delay: (200 + index * 100).ms,
+                      curve: Curves.elasticOut,
+                      duration: 400.ms),
 
                 const SizedBox(width: 16),
 

@@ -212,7 +212,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 const SizedBox(width: 8),
                 Text(
                   'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                 ),
               ],
             ),
@@ -239,7 +239,7 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
               onPressed: () => _showAddNoteDialog(theme),
               icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text('Add Event', style: TextStyle(color: Colors.white)),
+              label: const Text('Add Event', style: TextStyle(color: Colors.black)),
             ),
           ),
         ],

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sastra_x/Pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/theme_model.dart';
 
@@ -85,7 +86,27 @@ class _CalendarPageState extends State<CalendarPage> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return Scaffold(
-          backgroundColor: themeProvider.backgroundColor,
+
+
+          backgroundColor: AppTheme.backgroundLight,
+          appBar: AppBar(
+            title: const Text(
+              '',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: AppTheme.primaryBlue,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(regNo: "regNo"))),
+            ),
+          ),
+
+          
+          
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -143,7 +164,7 @@ class _CalendarPageState extends State<CalendarPage> {
     return Column(
       children: [
         Row(
-          children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+          children: ['Sun','Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
               .map((d) => Expanded(
               child: Center(
                   child: Text(d,
@@ -180,7 +201,8 @@ class _CalendarPageState extends State<CalendarPage> {
                 child: Center(
                   child: Text('$dayOffset',
                       style: TextStyle(
-                          fontWeight: FontWeight.w600, color: isSel ? Colors.white : theme.textColor)),
+                          fontWeight: FontWeight.w600, color: isSel ? Color(
+                          0xff070707) : theme.textColor)),
                 ),
               ),
             );

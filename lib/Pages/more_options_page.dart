@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:sastra_x/Pages/home_page.dart';
 
 import 'about_team_screen.dart';
 import 'about_team_screen.dart';
@@ -116,6 +117,14 @@ class MoreOptionsScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
                           children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back, color: Colors.black),
+                              onPressed: () => Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (_) => HomePage(regNo:"" )),
+                              ),
+                            ),
+
                             Icon(Icons.apps,
                                 color: Theme.of(context).colorScheme.primary,
                                 size: 30),
@@ -176,6 +185,14 @@ class MoreOptionsScreen extends StatelessWidget {
       case 'sgpa':
         Navigator.push(ctx, MaterialPageRoute(builder: (_) => const CgpaCalculatorPage()));
         break;
+      case 'transport':
+        Navigator.push(ctx, MaterialPageRoute(builder: (_) => const MoreOptionsScreen()));
+        break;
+      case 'clubs':
+        Navigator.push(ctx, MaterialPageRoute(builder: (_) => const MoreOptionsScreen()));
+        break;
+        Navigator.push(ctx, MaterialPageRoute(builder: (_) => InternalsPage()));
+        break;
       default:
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
@@ -224,7 +241,7 @@ class _OptionCard extends StatelessWidget {
               ],
             ),
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10),
-            child: FittedBox( // ✅ NEW
+            child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Column(
                 mainAxisSize: MainAxisSize.min,

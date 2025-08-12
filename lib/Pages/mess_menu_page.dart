@@ -170,6 +170,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
   }
 
   Widget _mealCard(String title, String menu, ThemeProvider theme) {
+
     final palette = {
       'Breakfast': {
         'color': theme.isDarkMode ? const Color(0xFFFFD93D) : Colors.orange[300],
@@ -244,6 +245,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
               ),
             ),
           ],
+
         ),
       ),
     );

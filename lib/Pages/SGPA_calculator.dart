@@ -1,16 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For TextInputFormatter
+import 'package:flutter/services.dart';
 
-// Assuming this is your AppTheme definition, adjust path if necessary
-import '../Models/theme_model.dart';
+import 'more_options_page.dart';
 
+// Assuming this is your AppTheme definition. I've recreated it to match the image's colors.
+class AppTheme {
+  static const Color primaryPurple = Color(0xFF1872F1);
+  static const Color accentPurple = Color(0xFF56C3DB);
+  static const Color lightPurple = Color(0xFFD6C8E0);
+  static const Color white = Colors.white;
 
+  static const TextStyle titleTextStyle = TextStyle(
+    color: white,
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  );
+  static const TextStyle headingTextStyle = TextStyle(
+    color: white,
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+  );
+  static const TextStyle subHeadingTextStyle = TextStyle(
+    color: Colors.white70,
+    fontSize: 14,
+  );
+  static const TextStyle cardTextStyle = TextStyle(
+    color: white,
+    fontSize: 16,
+  );
+  static const TextStyle buttonTextStyle = TextStyle(
+    color: primaryPurple,
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  );
+  static const TextStyle tabTextStyle = TextStyle(
+    color: white,
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  );
+  static const TextStyle resultTextStyle = TextStyle(
+    color: primaryPurple,
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  );
+}
 
+// Assuming you have a MoreOptionsPage class defined.
+class MoreOptionsPage extends StatelessWidget {
+  const MoreOptionsPage({super.key});
 
-
-
-
-
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('More Options'),
+      ),
+      body: const Center(
+        child: Text('This is the More Options Page'),
+      ),
+    );
+  }
+}
 
 class CgpaCalculatorPage extends StatefulWidget {
   const CgpaCalculatorPage({super.key});
@@ -20,63 +70,55 @@ class CgpaCalculatorPage extends StatefulWidget {
 }
 
 class _CgpaCalculatorPageState extends State<CgpaCalculatorPage> {
-  // Map grades to their corresponding point values
-  // Adjust these values based on your university's grading system
   final Map<String, double> _gradePoints = {
-    'S': 10.0,
-    'A+': 9.0,
-    'A': 8.0,
-    'B+': 7.0,
-    'B': 6.0,
-    'C': 5.0,
-    'D': 4.0,
-    'F': 0.0, // Fail
-    'N': 0.0, // Not graded / Absent / Withdrawn (adjust as needed)
+    'S': 10.0, 'A+': 9.0, 'A': 8.0, 'B+': 7.0, 'B': 6.0,
+    'C': 5.0, 'D': 4.0, 'F': 0.0, 'N': 0.0,
   };
 
-  int _numberOfSubjects = 7; // Initial number of subjects as per your image
-  List<int> _credits = [];
-  List<String> _grades = [];
-
+  // Using a list of maps to store subject data (credits and grades)
+  List<Map<String, dynamic>> _subjects = [];
   double _sgpa = 0.0;
-  double _cgpa = 0.0; // CGPA usually needs previous semester data. For this UI, we'll just show a dummy value or calculate based on the current input if it's the only semester.
-
-  final TextEditingController _subjectCountController = TextEditingController();
+  double _cgpa = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _subjectCountController.text = _numberOfSubjects.toString();
-    _initializeFields();
+    // Initialize with a few subjects to match the image's starting state
+    _addSubject(credits: 4, grade: 'S');
+    _addSubject(credits: 4, grade: 'A+');
+    _addSubject(credits: 4, grade: 'A');
+    _addSubject(credits: 4, grade: 'A+');
+    _addSubject(credits: 3, grade: 'S');
+    _addSubject(credits: 1, grade: 'A+');
+    _addSubject(credits: 1, grade: 'A+');
+    _calculateSgpa(); // Calculate initial SGPA
   }
 
-  @override
-  void dispose() {
-    _subjectCountController.dispose();
-    super.dispose();
-  }
-
-  void _initializeFields() {
-    _credits = List.filled(_numberOfSubjects, 4); // Default to 4 credits
-    _grades = List.filled(_numberOfSubjects, 'S'); // Default to 'S' grade
-    // Set initial values to match your image for the first few
-    if (_numberOfSubjects >= 7) {
-      _credits[0] = 4; _grades[0] = 'S';
-      _credits[1] = 4; _grades[1] = 'A+';
-      _credits[2] = 4; _grades[2] = 'A';
-      _credits[3] = 4; _grades[3] = 'A+';
-      _credits[4] = 3; _grades[4] = 'S';
-      _credits[5] = 1; _grades[5] = 'A+';
-      _credits[6] = 1; _grades[6] = 'A+';
-    }
-  }
-
-  void _updateNumberOfSubjects(int newCount) {
+  void _addSubject({int credits = 4, String grade = 'S'}) {
     setState(() {
-      _numberOfSubjects = newCount;
-      // Ensure the lists are resized and old values are preserved if possible
-      _credits = List.generate(newCount, (index) => index < _credits.length ? _credits[index] : 4);
-      _grades = List.generate(newCount, (index) => index < _grades.length ? _grades[index] : 'S');
+      _subjects.add({'credits': credits, 'grade': grade});
+      _calculateSgpa();
+    });
+  }
+
+  void _removeSubject(int index) {
+    setState(() {
+      _subjects.removeAt(index);
+      _calculateSgpa();
+    });
+  }
+
+  void _updateCredit(int index, int newCredit) {
+    setState(() {
+      _subjects[index]['credits'] = newCredit;
+      _calculateSgpa();
+    });
+  }
+
+  void _updateGrade(int index, String newGrade) {
+    setState(() {
+      _subjects[index]['grade'] = newGrade;
+      _calculateSgpa();
     });
   }
 
@@ -84,10 +126,10 @@ class _CgpaCalculatorPageState extends State<CgpaCalculatorPage> {
     double totalGradePoints = 0;
     int totalCredits = 0;
 
-    for (int i = 0; i < _numberOfSubjects; i++) {
-      final credit = _credits[i];
-      final grade = _grades[i];
-      final gradePoint = _gradePoints[grade] ?? 0.0; // Default to 0 if grade not found
+    for (var subject in _subjects) {
+      final credit = subject['credits'] as int;
+      final grade = subject['grade'] as String;
+      final gradePoint = _gradePoints[grade] ?? 0.0;
 
       totalGradePoints += (credit * gradePoint);
       totalCredits += credit;
@@ -96,285 +138,283 @@ class _CgpaCalculatorPageState extends State<CgpaCalculatorPage> {
     setState(() {
       if (totalCredits > 0) {
         _sgpa = totalGradePoints / totalCredits;
-        _cgpa = _sgpa + 0.6351; // Just to get a value similar to 9.2565 if SGPA is 8.6214
       } else {
         _sgpa = 0.0;
-        _cgpa = 0.0;
       }
+      // For demonstration, let's keep the CGPA logic simple.
+      // In a real app, this would be based on historical data.
+      _cgpa = _sgpa;
     });
   }
 
-  // Helper to build the custom dropdown button for credits
-  Widget _buildCreditDropdown(int index) {
-    return GestureDetector(
-      onTap: () async {
-        final selectedCredit = await _showCreditPicker(context, _credits[index]);
-        if (selectedCredit != null) {
-          setState(() {
-            _credits[index] = selectedCredit;
-          });
-        }
-      },
-      child: Container(
-        height: 50,
-        width: 80, // Adjust width as needed
-        decoration: BoxDecoration(
-          color: AppTheme.buttonTextColor, // Using AppTheme for button background
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppTheme.accentBlue.withOpacity(0.5)),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          _credits[index].toString(),
-          style: AppTheme.buttonTextStyle.copyWith(color: AppTheme.textDarkBlue), // Using AppTheme for text style
-        ),
+  // --- UI building helpers ---
+
+  Widget _buildSubjectCard(int index) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.accentPurple,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              'Subject ${index + 1} Credits ->',
+              style: AppTheme.cardTextStyle,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Credits Dropdown
+          GestureDetector(
+            onTap: () => _showCreditPicker(index),
+            child: Container(
+              height: 45,
+              width: 60,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryPurple.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.lightPurple, width: 0.5),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                _subjects[index]['credits'].toString(),
+                style: AppTheme.cardTextStyle,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Grades Dropdown
+          GestureDetector(
+            onTap: () => _showGradePicker(index),
+            child: Container(
+              height: 45,
+              width: 60,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryPurple.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.lightPurple, width: 0.5),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                _subjects[index]['grade'],
+                style: AppTheme.cardTextStyle,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Remove Subject Button
+          InkWell(
+            onTap: () => _removeSubject(index),
+            child: const Icon(
+              Icons.close,
+              color: AppTheme.white,
+              size: 24,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Helper to build the custom dropdown button for grades
-  Widget _buildGradeDropdown(int index) {
-    return GestureDetector(
-      onTap: () async {
-        final selectedGrade = await _showGradePicker(context, _grades[index]);
-        if (selectedGrade != null) {
-          setState(() {
-            _grades[index] = selectedGrade;
-          });
-        }
-      },
-      child: Container(
-        height: 50,
-        width: 80, // Adjust width as needed
-        decoration: BoxDecoration(
-          color: AppTheme.buttonTextColor, // Using AppTheme for button background
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppTheme.accentBlue.withOpacity(0.5)),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          _grades[index],
-          style: AppTheme.buttonTextStyle.copyWith(color: AppTheme.textDarkBlue), // Using AppTheme for text style
-        ),
-      ),
-    );
-  }
-
-  Future<int?> _showCreditPicker(BuildContext context, int currentValue) async {
-    return showDialog<int>(
+  // Helper to show credit picker dialog
+  Future<void> _showCreditPicker(int index) async {
+    final selectedCredit = await showDialog<int>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select Credits', style: AppTheme.labelTextStyle), // Using AppTheme for title
+          backgroundColor: AppTheme.accentPurple,
+          title: const Text('Select Credits', style: AppTheme.cardTextStyle),
           content: SingleChildScrollView(
             child: ListBody(
-              children: [1, 2, 3, 4, 5, 6].map((credit) =>
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).pop(credit);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: Text(
-                        credit.toString(),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: currentValue == credit ? FontWeight.bold : FontWeight.normal,
-                          color: currentValue == credit ? AppTheme.accentBlue : AppTheme.textDarkBlue, // Using AppTheme for colors
-                        ),
-                      ),
+              children: [1, 2, 3, 4, 5, 6].map((credit) => InkWell(
+                onTap: () => Navigator.of(context).pop(credit),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: Text(
+                    credit.toString(),
+                    style: AppTheme.cardTextStyle.copyWith(
+                      fontWeight: _subjects[index]['credits'] == credit ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
-              ).toList(),
+                ),
+              )).toList(),
             ),
           ),
         );
       },
     );
+    if (selectedCredit != null) {
+      _updateCredit(index, selectedCredit);
+    }
   }
 
-  Future<String?> _showGradePicker(BuildContext context, String currentValue) async {
-    return showDialog<String>(
+  // Helper to show grade picker dialog
+  Future<void> _showGradePicker(int index) async {
+    final selectedGrade = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select Grade', style: AppTheme.labelTextStyle), // Using AppTheme for title
+          backgroundColor: AppTheme.accentPurple,
+          title: const Text('Select Grade', style: AppTheme.cardTextStyle),
           content: SingleChildScrollView(
             child: ListBody(
-              children: _gradePoints.keys.map((grade) =>
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).pop(grade);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: Text(
-                        grade,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: currentValue == grade ? FontWeight.bold : FontWeight.normal,
-                          color: currentValue == grade ? AppTheme.accentBlue : AppTheme.textDarkBlue, // Using AppTheme for colors
-                        ),
-                      ),
+              children: _gradePoints.keys.map((grade) => InkWell(
+                onTap: () => Navigator.of(context).pop(grade),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: Text(
+                    grade,
+                    style: AppTheme.cardTextStyle.copyWith(
+                      fontWeight: _subjects[index]['grade'] == grade ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
-              ).toList(),
+                ),
+              )).toList(),
             ),
           ),
         );
       },
     );
+    if (selectedGrade != null) {
+      _updateGrade(index, selectedGrade);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryBlue.withOpacity(0.5), // Use AppTheme for background
-
+      backgroundColor: AppTheme.primaryPurple,
       appBar: AppBar(
-
-        backgroundColor: AppTheme.accentBlue, // Use AppTheme for AppBar background
-        title: const Text(
-          'SCGPA Calculator',
-          style: AppTheme.titleTextStyle, // Use AppTheme for title style
+        backgroundColor: AppTheme.primaryPurple,
+        // Add a back button to the AppBar
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.white),
+          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MoreOptionsScreen())),
         ),
-        centerTitle: true,
-       /*actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                // Implement save CGPA functionality (e.g., save to SharedPreferences, database)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('CGPA Save functionality coming soon!')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.buttonTextColor, // White button background from theme
-                foregroundColor: AppTheme.accentBlue, // Blue text color from theme
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              ),
-              child: const Text(
-                'Save CGPA',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],*/
+        title: const Text('Calculators', style: AppTheme.titleTextStyle),
+        centerTitle: false,
+        elevation: 0,
+        actions: const [
+          // You can add other actions here if needed
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Tabs Row
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                const Text(
-                  'How many subjects?',
-                  style: AppTheme.labelTextStyle, // Use AppTheme for text style
-                ),
-                const SizedBox(width: 15),
-                SizedBox(
-                  width: 80,
-                  child: TextField(
-                    controller: _subjectCountController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppTheme.buttonTextColor, // Use AppTheme for TextField fill color
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                    ),
-                    textAlign: TextAlign.center,
-                    style: AppTheme.buttonTextStyle.copyWith(color: AppTheme.textDarkBlue), // Use AppTheme for text style
-                    onSubmitted: (value) {
-                      int? count = int.tryParse(value);
-                      if (count != null && count > 0) {
-                        _updateNumberOfSubjects(count);
-                      } else {
-                        // Optionally show an error or reset to a default
-                        _updateNumberOfSubjects(1); // Default to 1 if invalid
-                        _subjectCountController.text = '1';
-                      }
-                    },
-                  ),
-                ),
+                _buildTab('SGPA', Icons.star, isSelected: true),
+               // _buildTab('Grade', Icons.grade, isSelected: false),
+               // _buildTab('Attendance', Icons.calendar_today, isSelected: false),
               ],
             ),
             const SizedBox(height: 30),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text('Credits', style: AppTheme.labelTextStyle.copyWith(fontSize: 20)), // Use AppTheme for text style
-                Text('Grades', style: AppTheme.labelTextStyle.copyWith(fontSize: 20)), // Use AppTheme for text style
-              ],
+            const Text('GPA Predictor', style: AppTheme.headingTextStyle),
+            const SizedBox(height: 5),
+            const Text(
+              'Calculate your SGPA based on credits and expected grade.',
+              style: AppTheme.subHeadingTextStyle,
             ),
-            const SizedBox(height: 15),
-
+            const SizedBox(height: 20),
+            // Subjects List
             ListView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // Disable scrolling for this list
-              itemCount: _numberOfSubjects,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildCreditDropdown(index),
-                      _buildGradeDropdown(index),
-                    ],
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _subjects.length,
+              itemBuilder: (context, index) => _buildSubjectCard(index),
+            ),
+            const SizedBox(height: 20),
+            // Expected SGPA Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              decoration: BoxDecoration(
+                color: AppTheme.lightPurple,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Text(
+                'Expected SGPA: ${_sgpa.toStringAsFixed(4)}',
+                textAlign: TextAlign.center,
+                style: AppTheme.resultTextStyle,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Add Subject Button
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () => _addSubject(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  foregroundColor: AppTheme.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: const BorderSide(color: AppTheme.white, width: 1),
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 40),
-
-            ElevatedButton(
-              onPressed: _calculateSgpa,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentBlue, // Use AppTheme for button background
-                foregroundColor: AppTheme.buttonTextColor, // Use AppTheme for button text color
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                icon: const Icon(Icons.add, color: AppTheme.white),
+                label: const Text(
+                  'Add subject',
+                  style: TextStyle(color: AppTheme.white),
+                ),
               ),
-              child: const Text(
-                'Calculate SGPA',
-                style: AppTheme.buttonTextStyle, // Use AppTheme for button text style
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            Column(
-              children: [
-                Text(
-                  'Your SGPA: ${_sgpa.toStringAsFixed(4)}',
-                  style: AppTheme.resultTextStyle, // Use AppTheme for text style
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  'Your CGPA: ${_cgpa.toStringAsFixed(4)}',
-                  style: AppTheme.resultTextStyle, // Use AppTheme for text style
-                ),
-              ],
             ),
           ],
         ),
       ),
+      // Bottom Navigation Bar
+     /* bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: AppTheme.primaryPurple,
+        selectedItemColor: AppTheme.lightPurple,
+        unselectedItemColor: Colors.white54,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.folder_open),
+            label: 'Materials',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calculate),
+            label: 'Calculators',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),*/
+    );
+  }
+
+  Widget _buildTab(String title, IconData icon, {required bool isSelected}) {
+    return Column(
+      children: [
+        Icon(icon, color: isSelected ? AppTheme.lightPurple : AppTheme.white, size: 30),
+        const SizedBox(height: 5),
+        Text(
+          title,
+          style: AppTheme.tabTextStyle.copyWith(
+            color: isSelected ? AppTheme.lightPurple : AppTheme.white,
+            fontSize: isSelected ? 16 : 14,
+          ),
+        ),
+        if (isSelected)
+          Container(
+            margin: const EdgeInsets.only(top: 5),
+            height: 3,
+            width: 40,
+            color: AppTheme.lightPurple,
+          ),
+      ],
     );
   }
 }

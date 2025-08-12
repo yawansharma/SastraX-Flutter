@@ -14,6 +14,7 @@ class AppTheme {
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color primaryBlue = Color(0xFF1e3a8a);
   static const Color navyBlue = Color(0xFF1e3a8a);
+  static const Color text = Color(0xffcf12e0);
 
   // Colours for credit page
   static const Color primaryPurple = Color(0xFF6C63FF);

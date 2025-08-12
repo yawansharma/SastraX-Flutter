@@ -68,10 +68,7 @@ class _CommunityPageState extends State<CommunityPage> {
             ),
             backgroundColor: AppTheme.primaryBlue,
             elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(regNo: "regNo"))),
-            ),
+
           ),
           
           

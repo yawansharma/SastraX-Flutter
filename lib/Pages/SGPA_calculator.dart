@@ -198,7 +198,7 @@ class _SgpaCalculatorPageState extends State<SgpaCalculatorPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('GPA Predictor', style: theme.textTheme.headlineSmall),
+            Text('SGPA Predictor', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 5),
             Text(
               'Calculate your SGPA based on credits and expected grade.',

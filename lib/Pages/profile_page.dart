@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import '../models/theme_model.dart';
 import '../models/student_profile.dart';
 import '../services/api_service.dart';
@@ -15,11 +18,28 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late Future<StudentProfile> profileFuture;
+  late Future<String?> picUrlFuture;
 
   @override
   void initState() {
     super.initState();
     profileFuture = ApiService.fetchStudentProfile(widget.regNo);
+    picUrlFuture = fetchProfilePicUrl(widget.regNo);
+  }
+
+  // Fetches the Cloudinary profile pic URL
+  Future<String?> fetchProfilePicUrl(String regNo) async {
+    final response = await http.post(
+      Uri.parse('https://withdrawal-northern-herb-undo.trycloudflare.com/profilePic'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'regNo': regNo}),
+    );
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(response.body);
+      // Cloudinary URL should be in either 'profilePic' or 'imageUrl'
+      return jsonBody['profilePic'] ?? jsonBody['imageUrl'];
+    }
+    return null;
   }
 
   @override
@@ -28,15 +48,12 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context, themeProvider, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            textScaleFactor:
-            MediaQuery.of(context).textScaleFactor.clamp(1.0, 1.1),
+            textScaleFactor: MediaQuery.of(context).textScaleFactor.clamp(1.0, 1.1),
           ),
           child: Scaffold(
             appBar: AppBar(
               leading: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back),
               ),
               title: const Text("Profile"),
@@ -48,11 +65,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  debugPrint('Profile error: ${snapshot.error}');
-                  return Center(
-                      child: Text('Error: ${snapshot.error.toString()}'));
+                  return Center(child: Text('Error: ${snapshot.error}'));
                 }
-
                 final student = snapshot.data!;
                 return SingleChildScrollView(
                   child: Column(
@@ -61,14 +75,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           gradient: themeProvider.isDarkMode
-                              ? const LinearGradient(colors: [
-                            Colors.black,
-                            Color(0xFF1A1A1A)
-                          ])
-                              : const LinearGradient(colors: [
-                            Color(0xFF1e3a8a),
-                            Color(0xFF3b82f6)
-                          ]),
+                              ? const LinearGradient(colors: [Colors.black, Color(0xFF1A1A1A)])
+                              : const LinearGradient(colors: [Color(0xFF1e3a8a), Color(0xFF3b82f6)]),
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(30),
                             bottomRight: Radius.circular(30),
@@ -77,52 +85,29 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: Column(
                           children: [
                             const SizedBox(height: 20),
-                            Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: themeProvider.isDarkMode
-                                    ? LinearGradient(colors: [
-                                  themeProvider.primaryColor,
-                                  AppTheme.electricBlue
-                                ])
-                                    : LinearGradient(colors: [
-                                  Colors.white,
-                                  Colors.blue[100]!
-                                ]),
-                                border: Border.all(
-                                  color: themeProvider.isDarkMode
-                                      ? themeProvider.primaryColor
-                                      : Colors.blue,
-                                  width: 4,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: themeProvider.isDarkMode
-                                        ? themeProvider.primaryColor
-                                        .withOpacity(0.5)
-                                        : Colors.black26,
-                                    blurRadius:
-                                    themeProvider.isDarkMode ? 15 : 10,
-                                    offset: const Offset(0, 5),
+                            FutureBuilder<String?>(
+                              future: picUrlFuture,
+                              builder: (context, snap) {
+                                if (snap.connectionState == ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                }
+                                if (!snap.hasData || snap.data == null) {
+                                  return Icon(Icons.person, size: 80, color: themeProvider.isDarkMode ? Colors.black : const Color(0xFF1e3a8a));
+                                }
+                                return ClipOval(
+                                  child: Image.network(
+                                    snap.data!,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Icon(
+                                      Icons.person,
+                                      size: 80,
+                                      color: themeProvider.isDarkMode ? Colors.black : const Color(0xFF1e3a8a),
+                                    ),
                                   ),
-                                ],
-                              ),
-                              child: ClipOval(
-                                child: Image.network(
-                                  "https://withdrawal-northern-herb-undo.trycloudflare.com/profilePic?regNo=${widget.regNo}&t=${DateTime.now().millisecondsSinceEpoch}",
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (context, error, stackTrace) => Icon(
-                                    Icons.person,
-                                    size: 80,
-                                    color: themeProvider.isDarkMode
-                                        ? Colors.black
-                                        : const Color(0xFF1e3a8a),
-                                  ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 15),
                             Text(
@@ -130,9 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: themeProvider.isDarkMode
-                                    ? themeProvider.primaryColor
-                                    : Colors.white,
+                                color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
                               ),
                             ),
                             const SizedBox(height: 5),
@@ -140,9 +123,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               student.regNo ?? "",
                               style: TextStyle(
                                 fontSize: 16,
-                                color: themeProvider.isDarkMode
-                                    ? themeProvider.textSecondaryColor
-                                    : Colors.white70,
+                                color: themeProvider.isDarkMode ? themeProvider.textSecondaryColor : Colors.white70,
                               ),
                             ),
                             const SizedBox(height: 30),
@@ -154,53 +135,25 @@ class _ProfilePageState extends State<ProfilePage> {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
-                            _buildProfileCard(
-                                'Department',
-                                student.department ?? "",
-                                Icons.school,
-                                themeProvider.primaryColor,
-                                themeProvider),
+                            _buildProfileCard('Department', student.department ?? "", Icons.school, themeProvider.primaryColor, themeProvider),
                             const SizedBox(height: 15),
-                            _buildProfileCard(
-                                'Semester',
-                                student.semester ?? "",
-                                Icons.calendar_today,
-                                Colors.green,
-                                themeProvider),
+                            _buildProfileCard('Semester', student.semester ?? "", Icons.calendar_today, Colors.green, themeProvider),
                             const SizedBox(height: 15),
-                            _buildProfileCard(
-                                'Batch',
-                                _getBatch(student.regNo ?? "",
-                                    student.department ?? ""),
-                                Icons.group,
-                                Colors.orange,
-                                themeProvider),
+                            _buildProfileCard('Batch', _getBatch(student.regNo ?? "", student.department ?? ""), Icons.group, Colors.orange, themeProvider),
                             const SizedBox(height: 15),
-                            _buildProfileCard(
-                                'Email',
-                                _getEmail(student.regNo ?? ""),
-                                Icons.email,
-                                themeProvider.primaryColor,
-                                themeProvider),
+                            _buildProfileCard('Email', _getEmail(student.regNo ?? ""), Icons.email, themeProvider.primaryColor, themeProvider),
                             const SizedBox(height: 30),
-
                             ElevatedButton.icon(
                               onPressed: () {
                                 Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => LoginPage()));
+                                    context, MaterialPageRoute(builder: (context) => LoginPage()));
                               },
-                              icon: const Icon(Icons.logout,
-                                  color: Colors.white),
-                              label: const Text('Log Out',
-                                  style: TextStyle(color: Colors.white)),
+                              icon: const Icon(Icons.logout, color: Colors.white),
+                              label: const Text('Log Out', style: TextStyle(color: Colors.white)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: themeProvider.primaryColor,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 24),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                             ),
                             const SizedBox(height: 30),
@@ -230,30 +183,22 @@ class _ProfilePageState extends State<ProfilePage> {
       final match = RegExp(r'(\d{2})\d{6}$').firstMatch(regNo);
       if (match != null) {
         final gradYear = 2000 + int.parse(match.group(1)!);
-        final offset =
-        department.toLowerCase().contains("m.tech") ? 5 : 4;
+        final offset = department.toLowerCase().contains("m.tech") ? 5 : 4;
         final startYear = gradYear - offset;
         return "$startYear - $gradYear";
       }
-    } catch (e) {
-      debugPrint("Batch parse error: $e");
-    }
+    } catch (e) {}
     return "Unknown";
   }
 
-  Widget _buildProfileCard(String title, String value, IconData icon,
-      Color color, ThemeProvider themeProvider) {
+  Widget _buildProfileCard(String title, String value, IconData icon, Color color, ThemeProvider themeProvider) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: themeProvider.cardBackgroundColor,
         borderRadius: BorderRadius.circular(15),
-        border: themeProvider.isDarkMode
-            ? Border.all(color: color.withOpacity(0.3))
-            : null,
-        boxShadow: themeProvider.isDarkMode
-            ? [BoxShadow(color: color.withOpacity(0.2), blurRadius: 10)]
-            : [const BoxShadow(color: Colors.black12, blurRadius: 10)],
+        border: themeProvider.isDarkMode ? Border.all(color: color.withOpacity(0.3)) : null,
+        boxShadow: themeProvider.isDarkMode ? [BoxShadow(color: color.withOpacity(0.2), blurRadius: 10)] : [const BoxShadow(color: Colors.black12, blurRadius: 10)],
       ),
       child: Row(
         children: [
@@ -263,9 +208,7 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: themeProvider.isDarkMode
-                  ? Border.all(color: color.withOpacity(0.3))
-                  : null,
+              border: themeProvider.isDarkMode ? Border.all(color: color.withOpacity(0.3)) : null,
             ),
             child: Icon(icon, color: color, size: 25),
           ),
@@ -274,17 +217,9 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: themeProvider.textSecondaryColor,
-                        fontWeight: FontWeight.w500)),
+                Text(title, style: TextStyle(fontSize: 14, color: themeProvider.textSecondaryColor, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 5),
-                Text(value,
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: themeProvider.textColor)),
+                Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: themeProvider.textColor)),
               ],
             ),
           ),

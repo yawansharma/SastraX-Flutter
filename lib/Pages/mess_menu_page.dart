@@ -17,35 +17,32 @@ class _MessMenuPageState extends State<MessMenuPage> {
   List<dynamic> _filtered = [];
   bool isLoading = true;
 
-  late String selectedWeek;   // "1".."4"
+  late String selectedWeek; // "1".."4"
   late String selectedDayAbbr;
 
   @override
   void initState() {
     super.initState();
-
     final now = DateTime.now();
     final todayIdx = now.weekday % 7; // Sunday = 0
     selectedDayAbbr = weekDays[todayIdx];
     _pageController = PageController(initialPage: todayIdx);
-
-    selectedWeek = weekOfMonth(now).toString(); // 1‑4
+    selectedWeek = weekOfMonth(now).toString(); // 1-4
     _fetchMenu();
   }
+
   int weekOfMonth(DateTime date) {
     final firstDay = DateTime(date.year, date.month, 1);
-    final before = firstDay.weekday % 7;            // days before the 1st in week 1
-    final week = ((before + date.day - 1) ~/ 7) + 1; // 1‑5
-    return (week - 1) % 4 + 1;                       // wrap to 1‑4
+    final before = firstDay.weekday % 7;
+    final week = ((before + date.day - 1) ~/ 7) + 1;
+    return (week - 1) % 4 + 1;
   }
 
   Future<void> _fetchMenu() async {
     try {
       final res = await http.get(Uri.parse(
           'https://withdrawal-northern-herb-undo.trycloudflare.com/messMenu'));
-
       if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
-
       _fullMenu = jsonDecode(res.body);
       _applyWeekFilter();
     } catch (e) {
@@ -60,7 +57,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
 
   void _applyWeekFilter() {
     _filtered = _fullMenu
-        .where((d) => d['week'].toString() == selectedWeek) // ← cast to string
+        .where((d) => d['week'].toString() == selectedWeek)
         .toList()
       ..sort((a, b) => _dayIndex(a['day']).compareTo(_dayIndex(b['day'])));
 
@@ -75,8 +72,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
     });
   }
 
-  int _dayIndex(String day) =>
-      weekDays.indexOf(day.substring(0, 3).toUpperCase());
+  int _dayIndex(String day) => weekDays.indexOf(day.substring(0, 3).toUpperCase());
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +135,9 @@ class _MessMenuPageState extends State<MessMenuPage> {
               d['day'].toString().substring(0, 3).toUpperCase() == abbr);
               if (newPage != -1) {
                 setState(() => selectedDayAbbr = abbr);
-                if (_pageController.hasClients) _pageController.jumpToPage(newPage);
+                if (_pageController.hasClients) {
+                  _pageController.jumpToPage(newPage);
+                }
               }
             },
             child: Container(
@@ -169,48 +167,91 @@ class _MessMenuPageState extends State<MessMenuPage> {
     );
   }
 
-  Widget _mealCard(String title, String menu, ThemeProvider theme) {
+  bool _isCurrentMeal(String mealName) {
+    final now = TimeOfDay.now();
+    bool inRange(TimeOfDay start, TimeOfDay end) {
+      final nowMins = now.hour * 60 + now.minute;
+      final startMins = start.hour * 60 + start.minute;
+      final endMins = end.hour * 60 + end.minute;
+      return nowMins >= startMins && nowMins <= endMins;
+    }
 
+    switch (mealName) {
+      case 'Breakfast':
+        return inRange(const TimeOfDay(hour: 7, minute: 30),
+            const TimeOfDay(hour: 9, minute: 0));
+      case 'Lunch':
+        return inRange(const TimeOfDay(hour: 11, minute: 45),
+            const TimeOfDay(hour: 14, minute: 30));
+      case 'Snacks':
+        return inRange(const TimeOfDay(hour: 17, minute: 30),
+            const TimeOfDay(hour: 18, minute: 30));
+      case 'Dinner':
+        return inRange(const TimeOfDay(hour: 19, minute: 30),
+            const TimeOfDay(hour: 21, minute: 0));
+      default:
+        return false;
+    }
+  }
+
+  Widget _mealCard(String title, String menu, ThemeProvider theme) {
     final palette = {
       'Breakfast': {
-        'color': theme.isDarkMode ? const Color(0xFFFFD93D) : Colors.orange[300],
+        'color': theme.isDarkMode ? const Color(0xFFFFD93D) : Colors.orange.shade300,
         'icon': Icons.wb_sunny,
-        'bg': 'assets/images/lessopacity_sunrise.jpg'
+        'gradient': LinearGradient(
+          colors: [Colors.orange.shade100, Colors.orange.shade300],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       },
       'Lunch': {
-        'color': theme.isDarkMode ? AppTheme.neonBlue : Colors.green[300],
+        'color': theme.isDarkMode ? AppTheme.neonBlue : Colors.green.shade300,
         'icon': Icons.lunch_dining,
-        'bg': 'assets/images/lessopacity_sunshine.jpg'
+        'gradient': LinearGradient(
+          colors: [Colors.green.shade100, Colors.green.shade300],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       },
       'Snacks': {
-        'color': theme.isDarkMode ? const Color(0xFFFF6B6B) : Colors.purple[300],
+        'color': theme.isDarkMode ? const Color(0xFFFF6B6B) : Colors.purple.shade300,
         'icon': Icons.local_cafe,
-        'bg': 'assets/images/lessopacity_sunset.jpg'
+        'gradient': LinearGradient(
+          colors: [Colors.purple.shade100, Colors.purple.shade300],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       },
       'Dinner': {
-        'color': theme.isDarkMode ? AppTheme.electricBlue : Colors.blue[300],
+        'color': theme.isDarkMode ? AppTheme.electricBlue : Colors.blue.shade300,
         'icon': Icons.dinner_dining,
-        'bg': 'assets/images/lessopacity_moon.jpg'
+        'gradient': LinearGradient(
+          colors: [Colors.blue.shade100, Colors.blue.shade300],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       },
     }[title]!;
+
+    final isCurrent = _isCurrentMeal(title);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: theme.cardBackgroundColor,
         borderRadius: BorderRadius.circular(20),
-        border: theme.isDarkMode
-            ? Border.all(color: (palette['color'] as Color).withOpacity(0.3))
-            : null,
+        border: Border.all(
+          color: isCurrent
+              ? Colors.redAccent
+              : (theme.isDarkMode
+              ? (palette['color'] as Color).withOpacity(0.3)
+              : Colors.redAccent.withOpacity(0.3)),
+          width: isCurrent ? 3 : 1,
+        ),
         boxShadow: const [
           BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))
         ],
-        image: DecorationImage(
-          image: AssetImage(palette['bg'] as String),
-          fit: BoxFit.cover,
-          colorFilter:
-          ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken),
-        ),
+        gradient: palette['gradient'] as LinearGradient,
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -224,8 +265,11 @@ class _MessMenuPageState extends State<MessMenuPage> {
                 color: palette['color'] as Color,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(palette['icon'] as IconData,
-                  color: theme.isDarkMode ? Colors.black : Colors.white, size: 25),
+              child: Icon(
+                palette['icon'] as IconData,
+                color: theme.isDarkMode ? Colors.black : Colors.white,
+                size: 25,
+              ),
             ),
             const SizedBox(width: 15),
             Expanded(
@@ -234,20 +278,17 @@ class _MessMenuPageState extends State<MessMenuPage> {
                 children: [
                   Text(title,
                       style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
+                          fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                   const SizedBox(height: 8),
                   SelectableText(menu,
-                      style:
-                      const TextStyle(fontSize: 14, color: Colors.white)),
+                      style: const TextStyle(fontSize: 14, color: Colors.white)),
                 ],
               ),
             ),
           ],
-
         ),
       ),
     );
   }
 }
+

@@ -280,8 +280,10 @@ class _MessMenuPageState extends State<MessMenuPage> {
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                   const SizedBox(height: 8),
-                  SelectableText(menu,
-                      style: const TextStyle(fontSize: 14, color: Colors.white)),
+                  SelectableText(
+                    menu,
+                    style: const TextStyle(fontSize: 14, color: Colors.black), // changed font color here
+                  ),
                 ],
               ),
             ),
@@ -291,4 +293,3 @@ class _MessMenuPageState extends State<MessMenuPage> {
     );
   }
 }
-

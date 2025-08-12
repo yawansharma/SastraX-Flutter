@@ -91,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               child: ClipOval(
                                 child: Image.network(
-                                  "https://kenneth-adsl-education-gamma.trycloudflare.comprofilePic?regNo=${widget.regNo}&t=${DateTime.now().millisecondsSinceEpoch}",
+                                  "https://withdrawal-northern-herb-undo.trycloudflare.com/profilePic?regNo=${widget.regNo}&t=${DateTime.now().millisecondsSinceEpoch}",
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) => Icon(
                                     Icons.person,

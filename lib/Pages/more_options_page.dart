@@ -183,7 +183,7 @@ class MoreOptionsScreen extends StatelessWidget {
         Navigator.push(ctx, MaterialPageRoute(builder: (_) => AboutTeamScreen()));
         break;
       case 'sgpa':
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) => const CgpaCalculatorPage()));
+        Navigator.push(ctx, MaterialPageRoute(builder: (_) => const SgpaCalculatorPage()));
         break;
       case 'transport':
         Navigator.push(ctx, MaterialPageRoute(builder: (_) => const MoreOptionsScreen()));

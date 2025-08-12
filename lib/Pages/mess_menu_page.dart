@@ -42,7 +42,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
   Future<void> _fetchMenu() async {
     try {
       final res = await http.get(Uri.parse(
-          'https://kenneth-adsl-education-gamma.trycloudflare.com/messMenu'));
+          'https://withdrawal-northern-herb-undo.trycloudflare.com/messMenu'));
 
       if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
 

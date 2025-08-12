@@ -42,7 +42,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
   Future<void> _fetchMenu() async {
     try {
       final res = await http.get(Uri.parse(
-          'https://feel-commercial-managed-laws.trycloudflare.com/messMenu'));
+          'https://kenneth-adsl-education-gamma.trycloudflare.com/messMenu'));
 
       if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
 
@@ -174,22 +174,22 @@ class _MessMenuPageState extends State<MessMenuPage> {
       'Breakfast': {
         'color': theme.isDarkMode ? const Color(0xFFFFD93D) : Colors.orange[300],
         'icon': Icons.wb_sunny,
-        'bg': 'assets/images/sunrise.jpg'
+        'bg': 'assets/images/lessopacity_sunrise.jpg'
       },
       'Lunch': {
         'color': theme.isDarkMode ? AppTheme.neonBlue : Colors.green[300],
         'icon': Icons.lunch_dining,
-        'bg': 'assets/images/sunshine.jpg'
+        'bg': 'assets/images/lessopacity_sunshine.jpg'
       },
       'Snacks': {
         'color': theme.isDarkMode ? const Color(0xFFFF6B6B) : Colors.purple[300],
         'icon': Icons.local_cafe,
-        'bg': 'assets/images/sunset.jpg'
+        'bg': 'assets/images/lessopacity_sunset.jpg'
       },
       'Dinner': {
         'color': theme.isDarkMode ? AppTheme.electricBlue : Colors.blue[300],
         'icon': Icons.dinner_dining,
-        'bg': 'assets/images/moon.jpg'
+        'bg': 'assets/images/lessopacity_moon.jpg'
       },
     }[title]!;
 

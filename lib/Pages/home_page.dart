@@ -135,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final res = await http.get(
         Uri.parse(
-          'https://feel-commercial-managed-laws.trycloudflare.com/dob?regNo=${widget.regNo}',
+          'https://kenneth-adsl-education-gamma.trycloudflare.com/dob?regNo=${widget.regNo}',
         ),
       );
 
@@ -162,19 +162,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _fetchAttendance() async {
+    // Check if data is already loaded to avoid refetching.
+    if (attendancePercent >= 0 && totalClasses > 0) return;
+
     try {
       final res = await http.post(
-        Uri.parse('https://feel-commercial-managed-laws.trycloudflare.com/attendance'),
+        Uri.parse('https://kenneth-adsl-education-gamma.trycloudflare.com/attendance'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
       );
+
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        if (data['success'] != true || data['attendanceHTML'] == null) {
-          throw Exception("Invalid attendance data");
-        }
 
-        final raw = data['attendanceHTML'] as String? ?? '0%';
+        final raw = data['attendanceHTML'] ?? data['attendance'] ?? '0%';
         final percentMatch = RegExp(r'(\d+(?:\.\d+)?)\s*%').firstMatch(raw);
         final pairMatch = RegExp(r'\(\s*(\d+)\s*/\s*(\d+)\s*\)').firstMatch(raw);
 
@@ -192,9 +193,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _fetchCGPA() async {
+    // Check if CGPA is already loaded.
+    if (cgpa != null && cgpa != 'N/A') {
+      setState(() => isCgpaLoading = false);
+      return;
+    }
+
     try {
       final res = await http.post(
-        Uri.parse('https://feel-commercial-managed-laws.trycloudflare.com/cgpa'),
+        Uri.parse('https://kenneth-adsl-education-gamma.trycloudflare.com/cgpa'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false}),
       );

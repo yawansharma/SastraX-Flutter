@@ -23,7 +23,7 @@ class AttendanceSnapshot {
 }
 
 class AttendanceService {
-  static const _base = 'https://container-dev-bracket-embedded.trycloudflare.com';
+  static const _base = 'https://kenneth-adsl-education-gamma.trycloudflare.com/';
 
   static Future<AttendanceSnapshot> fetch() async {
     final res = await http.get(Uri.parse('$_base/attendance'));

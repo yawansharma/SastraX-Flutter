@@ -38,7 +38,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
       final dayIndex = today.weekday - 1; // 0 = Monday, 6 = Sunday
 
       final res = await http.post(
-        Uri.parse("https://feel-commercial-managed-laws.trycloudflare.com/timetable"),
+        Uri.parse("https://kenneth-adsl-education-gamma.trycloudflare.com/timetable"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
       );

@@ -86,27 +86,7 @@ class _CalendarPageState extends State<CalendarPage> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return Scaffold(
-
-
-          backgroundColor: AppTheme.backgroundLight,
-          appBar: AppBar(
-            title: const Text(
-              '',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            backgroundColor: AppTheme.primaryBlue,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(regNo: "regNo"))),
-            ),
-          ),
-
-          
-          
+          backgroundColor: themeProvider.backgroundColor,
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),

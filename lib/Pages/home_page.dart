@@ -167,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final res = await http.post(
-        Uri.parse('https://kenneth-adsl-education-gamma.trycloudflare.com/attendance'),
+        Uri.parse('https://withdrawal-northern-herb-undo.trycloudflare.com/attendance'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
       );
@@ -201,7 +201,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final res = await http.post(
-        Uri.parse('https://kenneth-adsl-education-gamma.trycloudflare.com/cgpa'),
+        Uri.parse('https://withdrawal-northern-herb-undo.trycloudflare.com/cgpa'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false}),
       );
@@ -265,11 +265,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 MediaQuery.withClampedTextScaling(
                                   minScaleFactor: 1.0,
                                   maxScaleFactor: 1.0,
-                                  child: FittedBox(
+                                  child: const FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
                                       '🎉 Happy Birthday! 🎉',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.amber,

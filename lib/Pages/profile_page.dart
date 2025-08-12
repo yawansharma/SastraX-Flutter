@@ -28,15 +28,18 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context, themeProvider, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            textScaleFactor: MediaQuery.of(context).textScaleFactor.clamp(1.0, 1.1),
+            textScaleFactor:
+            MediaQuery.of(context).textScaleFactor.clamp(1.0, 1.1),
           ),
           child: Scaffold(
             appBar: AppBar(
               leading: IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: Icon(Icons.arrow_back)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back),
+              ),
+              title: const Text("Profile"),
             ),
             backgroundColor: themeProvider.backgroundColor,
             body: FutureBuilder<StudentProfile>(
@@ -46,7 +49,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   debugPrint('Profile error: ${snapshot.error}');
-                  return Center(child: Text('Error: ${snapshot.error.toString()}'));
+                  return Center(
+                      child: Text('Error: ${snapshot.error.toString()}'));
                 }
 
                 final student = snapshot.data!;
@@ -57,8 +61,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           gradient: themeProvider.isDarkMode
-                              ? const LinearGradient(colors: [Colors.black, Color(0xFF1A1A1A)])
-                              : const LinearGradient(colors: [Color(0xFF1e3a8a), Color(0xFF3b82f6)]),
+                              ? const LinearGradient(colors: [
+                            Colors.black,
+                            Color(0xFF1A1A1A)
+                          ])
+                              : const LinearGradient(colors: [
+                            Color(0xFF1e3a8a),
+                            Color(0xFF3b82f6)
+                          ]),
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(30),
                             bottomRight: Radius.circular(30),
@@ -73,18 +83,28 @@ class _ProfilePageState extends State<ProfilePage> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: themeProvider.isDarkMode
-                                    ? LinearGradient(colors: [themeProvider.primaryColor, AppTheme.electricBlue])
-                                    : LinearGradient(colors: [Colors.white, Colors.blue[100]!]),
+                                    ? LinearGradient(colors: [
+                                  themeProvider.primaryColor,
+                                  AppTheme.electricBlue
+                                ])
+                                    : LinearGradient(colors: [
+                                  Colors.white,
+                                  Colors.blue[100]!
+                                ]),
                                 border: Border.all(
-                                  color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.blue,
+                                  color: themeProvider.isDarkMode
+                                      ? themeProvider.primaryColor
+                                      : Colors.blue,
                                   width: 4,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: themeProvider.isDarkMode
-                                        ? themeProvider.primaryColor.withOpacity(0.5)
+                                        ? themeProvider.primaryColor
+                                        .withOpacity(0.5)
                                         : Colors.black26,
-                                    blurRadius: themeProvider.isDarkMode ? 15 : 10,
+                                    blurRadius:
+                                    themeProvider.isDarkMode ? 15 : 10,
                                     offset: const Offset(0, 5),
                                   ),
                                 ],
@@ -93,10 +113,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: Image.network(
                                   "https://withdrawal-northern-herb-undo.trycloudflare.com/profilePic?regNo=${widget.regNo}&t=${DateTime.now().millisecondsSinceEpoch}",
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Icon(
+                                  errorBuilder:
+                                      (context, error, stackTrace) => Icon(
                                     Icons.person,
                                     size: 80,
-                                    color: themeProvider.isDarkMode ? Colors.black : const Color(0xFF1e3a8a),
+                                    color: themeProvider.isDarkMode
+                                        ? Colors.black
+                                        : const Color(0xFF1e3a8a),
                                   ),
                                 ),
                               ),
@@ -107,7 +130,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: themeProvider.isDarkMode ? themeProvider.primaryColor : Colors.white,
+                                color: themeProvider.isDarkMode
+                                    ? themeProvider.primaryColor
+                                    : Colors.white,
                               ),
                             ),
                             const SizedBox(height: 5),
@@ -145,7 +170,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             const SizedBox(height: 15),
                             _buildProfileCard(
                                 'Batch',
-                                _getBatch(student.regNo ?? "", student.department ?? ""),
+                                _getBatch(student.regNo ?? "",
+                                    student.department ?? ""),
                                 Icons.group,
                                 Colors.orange,
                                 themeProvider),
@@ -157,17 +183,24 @@ class _ProfilePageState extends State<ProfilePage> {
                                 themeProvider.primaryColor,
                                 themeProvider),
                             const SizedBox(height: 30),
+
                             ElevatedButton.icon(
                               onPressed: () {
-                                Navigator.pushReplacement(context,
-                                    MaterialPageRoute(builder: (context) => LoginPage()));
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => LoginPage()));
                               },
-                              icon: const Icon(Icons.logout, color: Colors.white),
-                              label: const Text('Log Out', style: TextStyle(color: Colors.white)),
+                              icon: const Icon(Icons.logout,
+                                  color: Colors.white),
+                              label: const Text('Log Out',
+                                  style: TextStyle(color: Colors.white)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: themeProvider.primaryColor,
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 24),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
                               ),
                             ),
                             const SizedBox(height: 30),
@@ -197,7 +230,8 @@ class _ProfilePageState extends State<ProfilePage> {
       final match = RegExp(r'(\d{2})\d{6}$').firstMatch(regNo);
       if (match != null) {
         final gradYear = 2000 + int.parse(match.group(1)!);
-        final offset = department.toLowerCase().contains("m.tech") ? 5 : 4;
+        final offset =
+        department.toLowerCase().contains("m.tech") ? 5 : 4;
         final startYear = gradYear - offset;
         return "$startYear - $gradYear";
       }
@@ -214,7 +248,9 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         color: themeProvider.cardBackgroundColor,
         borderRadius: BorderRadius.circular(15),
-        border: themeProvider.isDarkMode ? Border.all(color: color.withOpacity(0.3)) : null,
+        border: themeProvider.isDarkMode
+            ? Border.all(color: color.withOpacity(0.3))
+            : null,
         boxShadow: themeProvider.isDarkMode
             ? [BoxShadow(color: color.withOpacity(0.2), blurRadius: 10)]
             : [const BoxShadow(color: Colors.black12, blurRadius: 10)],
@@ -227,7 +263,9 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: themeProvider.isDarkMode ? Border.all(color: color.withOpacity(0.3)) : null,
+              border: themeProvider.isDarkMode
+                  ? Border.all(color: color.withOpacity(0.3))
+                  : null,
             ),
             child: Icon(icon, color: color, size: 25),
           ),

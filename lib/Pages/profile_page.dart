@@ -30,7 +30,7 @@ class _ProfilePageState extends State<ProfilePage> {
   // Fetches the Cloudinary profile pic URL
   Future<String?> fetchProfilePicUrl(String regNo) async {
     final response = await http.post(
-      Uri.parse('https://withdrawal-northern-herb-undo.trycloudflare.com/profilePic'),
+      Uri.parse('https://bulletin-screenshot-islamic-lead.trycloudflare.com/profilePic'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'regNo': regNo}),
     );

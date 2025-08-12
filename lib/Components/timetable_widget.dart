@@ -34,11 +34,11 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
   Future<void> fetchTimetable() async {
     try {
-      final today = DateTime.now(); // Use actual current date
+      final today = DateTime.now();
       final dayIndex = today.weekday - 1; // 0 = Monday, 6 = Sunday
 
       final res = await http.post(
-        Uri.parse("https://withdrawal-northern-herb-undo.trycloudflare.com/timetable"),
+        Uri.parse("https://bulletin-screenshot-islamic-lead.trycloudflare.com/timetable"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
       );
@@ -77,7 +77,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
           '06:30 - 07:30',
           '07:30 - 08:30',
         ];
-
         for (final slot in timeSlots) {
           final subject = todayData[slot] ?? 'N/A';
           String room = '';
@@ -89,18 +88,20 @@ class _TimetableWidgetState extends State<TimetableWidget> {
           }
 
           final parts = slot.split(' - ');
-          final formatter = DateFormat('h:mm a');
-          final startTime = DateFormat('HH:mm').parse(parts[0]);
-          final endTime = DateFormat('HH:mm').parse(parts[1]);
-          final formattedTime = '${formatter.format(startTime)} - ${formatter.format(endTime)}';
+          final startTime24 = DateFormat('HH:mm').parse(parts[0]); // 24h parse
+          final endTime24   = DateFormat('HH:mm').parse(parts[1]);
+
+          final formattedTime =
+              '${DateFormat('h:mm a').format(startTime24)} - ${DateFormat('h:mm a').format(endTime24)}';
 
           transformedTimetable.add({
-            'time': formattedTime,
+            'time': formattedTime,       // For UI
+            'start': startTime24.toIso8601String(), // For logic
+            'end': endTime24.toIso8601String(),
             'subject': cleanSubject,
             'room': room,
           });
         }
-
         setState(() {
           timetable = transformedTimetable;
           currentIndex = _getCurrentIndex();
@@ -117,7 +118,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
           });
         });
       } else {
-        print('Failed to fetch timetable: status=${res.statusCode}');
         throw Exception("Failed to fetch timetable: ${res.statusCode}");
       }
     } catch (e) {
@@ -128,36 +128,41 @@ class _TimetableWidgetState extends State<TimetableWidget> {
       });
     }
   }
+
   int? _getCurrentIndex() {
-    final now = DateTime.now(); // 03:53 PM IST
-    final formatter = DateTime.now();
+    final now = DateTime.now();
+
     for (int i = 0; i < timetable.length; i++) {
       try {
-        final parts = timetable[i]['time']!.split(' - ');
-        final start = DateTime.parse(parts[0]);
-        final end = DateTime.parse(parts[1]);
+        final start = DateTime.parse(timetable[i]['start']!);
+        final end = DateTime.parse(timetable[i]['end']!);
+
         final startTime = DateTime(now.year, now.month, now.day, start.hour, start.minute);
         final endTime = DateTime(now.year, now.month, now.day, end.hour, end.minute);
+
         if (now.isAfter(startTime) && now.isBefore(endTime)) return i;
       } catch (_) {}
     }
     return null;
   }
 
-  bool _isCurrentSlot(String timeRange) {
+
+  bool _isCurrentSlot(Map<String, String> item) {
     try {
-      final now = DateTime.now(); // 03:53 PM IST
-      final formatter = DateFormat('h:mm a');
-      final parts = timeRange.split(' - ');
-      final start = formatter.parse(parts[0]);
-      final end = formatter.parse(parts[1]);
+      final now = DateTime.now();
+      final start = DateTime.parse(item['start']!);
+      final end = DateTime.parse(item['end']!);
+
       final startTime = DateTime(now.year, now.month, now.day, start.hour, start.minute);
       final endTime = DateTime(now.year, now.month, now.day, end.hour, end.minute);
+
       return now.isAfter(startTime) && now.isBefore(endTime);
     } catch (_) {
       return false;
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +203,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         fontWeight: FontWeight.bold,
                         color: themeProvider.isDarkMode ? AppTheme.neonBlue : Colors.white,
                       ),
-                      textScaler: TextScaler.linear(1.0),
                     ),
                   ],
                 ),
@@ -223,7 +227,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     itemBuilder: (context, index) {
                       final item = timetable[index];
                       final isBreak = item['subject']!.contains('Break');
-                      final isCurrent = _isCurrentSlot(item['time']!);
+                      final isCurrent = _isCurrentSlot(item);
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
@@ -244,7 +248,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                           ),
                         ),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           leading: Container(
                             width: 50,
                             height: 40,
@@ -268,7 +271,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),
-                                textScaler: TextScaler.linear(1.0),
                               ),
                             ),
                           ),
@@ -279,38 +281,23 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                               color: themeProvider.primaryColor,
                               fontSize: 15,
                             ),
-                            textScaler: TextScaler.linear(1.0),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  item['time']!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: themeProvider.textSecondaryColor,
-                                    fontSize: 13,
-                                  ),
-                                  textScaler: TextScaler.linear(1.0),
+                              Text(
+                                item['time']!,
+                                style: TextStyle(
+                                  color: themeProvider.textSecondaryColor,
+                                  fontSize: 13,
                                 ),
                               ),
                               if (item['room']!.isNotEmpty)
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    item['room']!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: themeProvider.textSecondaryColor,
-                                      fontSize: 11.5,
-                                    ),
-                                    textScaler: TextScaler.linear(1.0),
+                                Text(
+                                  item['room']!,
+                                  style: TextStyle(
+                                    color: themeProvider.textSecondaryColor,
+                                    fontSize: 11.5,
                                   ),
                                 ),
                             ],

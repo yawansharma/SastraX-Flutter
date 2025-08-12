@@ -135,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final res = await http.get(
         Uri.parse(
-          'https://withdrawal-northern-herb-undo.trycloudflare.com/dob?regNo=${widget.regNo}',
+          'https://bulletin-screenshot-islamic-lead.trycloudflare.com/dob?regNo=${widget.regNo}',
         ),
       );
 
@@ -167,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final res = await http.post(
-        Uri.parse('https://withdrawal-northern-herb-undo.trycloudflare.com/attendance'),
+        Uri.parse('https://bulletin-screenshot-islamic-lead.trycloudflare.com/attendance'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
       );
@@ -201,7 +201,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final res = await http.post(
-        Uri.parse('https://withdrawal-northern-herb-undo.trycloudflare.com/cgpa'),
+        Uri.parse('https://bulletin-screenshot-islamic-lead.trycloudflare.com/cgpa'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false}),
       );

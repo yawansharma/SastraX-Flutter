@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/student_profile.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://withdrawal-northern-herb-undo.trycloudflare.com';
+  static const String baseUrl = 'https://bulletin-screenshot-islamic-lead.trycloudflare.com';
 
   static Future<StudentProfile> fetchStudentProfile(String regNo) async {
     final response = await http.post(

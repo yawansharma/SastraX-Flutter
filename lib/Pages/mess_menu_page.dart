@@ -41,7 +41,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
   Future<void> _fetchMenu() async {
     try {
       final res = await http.get(Uri.parse(
-          'https://withdrawal-northern-herb-undo.trycloudflare.com/messMenu'));
+          'https://bulletin-screenshot-islamic-lead.trycloudflare.com/messMenu'));
       if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
       _fullMenu = jsonDecode(res.body);
       _applyWeekFilter();
@@ -169,6 +169,7 @@ class _MessMenuPageState extends State<MessMenuPage> {
 
   bool _isCurrentMeal(String mealName) {
     final now = TimeOfDay.now();
+
     bool inRange(TimeOfDay start, TimeOfDay end) {
       final nowMins = now.hour * 60 + now.minute;
       final startMins = start.hour * 60 + start.minute;
@@ -187,13 +188,13 @@ class _MessMenuPageState extends State<MessMenuPage> {
         return inRange(const TimeOfDay(hour: 17, minute: 30),
             const TimeOfDay(hour: 18, minute: 30));
       case 'Dinner':
-        return inRange(const TimeOfDay(hour: 19, minute: 30),
-            const TimeOfDay(hour: 21, minute: 0));
+      // Adjust this if dinner is served till later or starts earlier
+        return inRange(const TimeOfDay(hour: 19, minute: 0),
+            const TimeOfDay(hour: 21, minute: 40));
       default:
         return false;
     }
   }
-
   Widget _mealCard(String title, String menu, ThemeProvider theme) {
     final palette = {
       'Breakfast': {
@@ -234,7 +235,8 @@ class _MessMenuPageState extends State<MessMenuPage> {
       },
     }[title]!;
 
-    final isCurrent = _isCurrentMeal(title);
+    // For testing, treat every meal as current
+    final isCurrent = true;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -242,14 +244,14 @@ class _MessMenuPageState extends State<MessMenuPage> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isCurrent
-              ? Colors.redAccent
+              ? AppTheme.neonBlue
               : (theme.isDarkMode
               ? (palette['color'] as Color).withOpacity(0.3)
-              : Colors.redAccent.withOpacity(0.3)),
+              : AppTheme.neonBlue.withOpacity(0.3)),
           width: isCurrent ? 3 : 1,
         ),
         boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))
+          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5)),
         ],
         gradient: palette['gradient'] as LinearGradient,
       ),
@@ -276,13 +278,21 @@ class _MessMenuPageState extends State<MessMenuPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   SelectableText(
                     menu,
-                    style: const TextStyle(fontSize: 14, color: Colors.black), // changed font color here
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black,
+                    ),
                   ),
                 ],
               ),
@@ -293,3 +303,4 @@ class _MessMenuPageState extends State<MessMenuPage> {
     );
   }
 }
+

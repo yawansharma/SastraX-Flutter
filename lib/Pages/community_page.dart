@@ -1,54 +1,164 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:sastra_x/Pages/home_page.dart';
 import '../models/theme_model.dart';
 
 class CommunityPage extends StatefulWidget {
+  const CommunityPage({super.key});
+
   @override
   _CommunityPageState createState() => _CommunityPageState();
 }
 
 class _CommunityPageState extends State<CommunityPage> {
-  TextEditingController _messageController = TextEditingController();
-  List<Map<String, dynamic>> messages = [
+  final TextEditingController _postController = TextEditingController();
+
+
+  final List<Map<String, dynamic>> _posts = [
     {
       'sender': 'Alice',
-      'message': 'Hey everyone! Anyone up for study group tonight?',
-      'time': '10:30 AM',
-      'isMe': false,
+      'handle': '@alice_wonder',
+      'avatarInitial': 'A',
+      'message': 'Hey everyone! Anyone up for a study group tonight? We could cover the last two chapters of calculus.',
+      'time': '15m',
+      'likes': 12,
+      'reposts': 2,
+      'views': 156,
+      'imageFile': null,
     },
     {
-      'sender': 'You',
-      'message': 'What subject?',
-      'time': '10:32 AM',
-      'isMe': true,
-    },
-    {
-      'sender': 'Bob',
-      'message': 'Mathematics would be great. I\'m struggling with calculus.',
-      'time': '10:35 AM',
-      'isMe': false,
-    },
-    {
-      'sender': 'You',
-      'message': 'Perfect! Let\'s meet at the library at 7 PM.',
-      'time': '10:37 AM',
-      'isMe': true,
+      'sender': 'Bob the Builder',
+      'handle': '@bob_builds',
+      'avatarInitial': 'B',
+      'message': 'Just a heads-up, the library just got a new shipment of programming books. Saw some great titles on Flutter and Dart!',
+      'time': '45m',
+      'likes': 34,
+      'reposts': 9,
+      'views': 432,
+      'imageFile': null,
     },
   ];
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isNotEmpty) {
-      setState(() {
-        messages.add({
-          'sender': 'You',
-          'message': _messageController.text.trim(),
-          'time': '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
-          'isMe': true,
-        });
-      });
-      _messageController.clear();
-    }
+
+  Future<XFile?> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    return image;
+  }
+
+
+  void _openComposePostDialog() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    XFile? selectedImageFile;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: themeProvider.cardBackgroundColor,
+              title: Text('Compose Post', style: TextStyle(color: themeProvider.textColor)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _postController,
+                      autofocus: true,
+                      maxLength: 280,
+                      maxLines: null,
+                      style: TextStyle(color: themeProvider.textColor),
+                      decoration: InputDecoration(
+                        hintText: "What's happening?",
+                        hintStyle: TextStyle(color: themeProvider.textSecondaryColor),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    if (selectedImageFile != null)
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              File(selectedImageFile!.path),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: () {
+                                setDialogState(() {
+                                  selectedImageFile = null;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.close, color: Colors.white, size: 18),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                  ],
+                ),
+              ),
+              actions: [
+
+                IconButton(
+                  icon: Icon(Icons.photo_library_outlined, color: themeProvider.primaryColor),
+                  onPressed: () async {
+                    final image = await _pickImage();
+                    if (image != null) {
+                      setDialogState(() {
+                        selectedImageFile = image;
+                      });
+                    }
+                  },
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_postController.text.trim().isNotEmpty || selectedImageFile != null) {
+                      setState(() {
+                        _posts.insert(0, {
+                          'sender': 'You',
+                          'handle': '@me',
+                          'avatarInitial': 'Y',
+                          'message': _postController.text.trim(),
+                          'time': 'Just now',
+                          'likes': 0,
+                          'reposts': 0,
+                          'views': 0,
+                          'imageFile': selectedImageFile,
+                        });
+                      });
+                      _postController.clear();
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Post'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -57,245 +167,130 @@ class _CommunityPageState extends State<CommunityPage> {
       builder: (context, themeProvider, child) {
         return Scaffold(
           backgroundColor: themeProvider.backgroundColor,
-          
           appBar: AppBar(
-            title: const Text(
-              '',
+            // ### KEY CHANGE IS HERE ###
+            title: Text(
+              'Community',
               style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+                // If it's dark mode, use the default theme color (null),
+                // otherwise (in light mode), use blue.
+                color: themeProvider.isDarkMode ? null : Colors.indigo,
               ),
             ),
-            backgroundColor: AppTheme.primaryBlue,
+            backgroundColor: themeProvider.backgroundColor,
             elevation: 0,
-
+            scrolledUnderElevation: 1,
           ),
-          
-          
-          body: Column(
-            children: [
-              // Chat Messages
-              Expanded(
-                child: Container(
-                  margin: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: themeProvider.cardBackgroundColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: themeProvider.isDarkMode
-                        ? Border.all(color: AppTheme.neonBlue.withOpacity(0.3))
-                        : null,
-                    boxShadow: themeProvider.isDarkMode
-                        ? [
-                            BoxShadow(
-                              color: AppTheme.neonBlue.withOpacity(0.2),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : [
-                            const BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 10,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                  ),
-                  child: ListView.builder(
-                    padding: EdgeInsets.all(16),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      return _buildMessageBubble(
-                        message['sender'],
-                        message['message'],
-                        message['time'],
-                        message['isMe'],
-                        themeProvider,
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: themeProvider.cardBackgroundColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: themeProvider.isDarkMode
-                      ? Border.all(color: AppTheme.neonBlue.withOpacity(0.3))
-                      : null,
-                  boxShadow: themeProvider.isDarkMode
-                      ? [
-                          BoxShadow(
-                            color: AppTheme.neonBlue.withOpacity(0.2),
-                            blurRadius: 15,
-                            spreadRadius: 2,
-                          ),
-                        ]
-                      : [
-                          const BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          style: TextStyle(color: themeProvider.textColor),
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(color: themeProvider.textSecondaryColor),
-                          ),
-                          onSubmitted: (_) => _sendMessage(),
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: _sendMessage,
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            gradient: themeProvider.isDarkMode
-                                ? LinearGradient(colors: [AppTheme.neonBlue, AppTheme.electricBlue])
-                                : LinearGradient(colors: [themeProvider.primaryColor, Color(0xFF3b82f6)]),
-                            shape: BoxShape.circle,
-                            boxShadow: themeProvider.isDarkMode
-                                ? [
-                                    BoxShadow(
-                                      color: AppTheme.neonBlue.withOpacity(0.5),
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: Icon(
-                            Icons.send,
-                            color: themeProvider.isDarkMode ? Colors.black : Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          floatingActionButton: FloatingActionButton(
+            onPressed: _openComposePostDialog,
+            child: const Icon(Icons.add),
+          ),
+          body: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: _posts.length,
+            itemBuilder: (context, index) {
+              return _buildPostCard(_posts[index], themeProvider);
+            },
+            separatorBuilder: (context, index) => Divider(
+              height: 1,
+              color: themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[200],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildMessageBubble(String sender, String message, String time, bool isMe, ThemeProvider themeProvider) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
+  Widget _buildPostCard(Map<String, dynamic> post, ThemeProvider themeProvider) {
+
+    final XFile? imageFile = post['imageFile'];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isMe) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: themeProvider.isDarkMode 
-                  ? themeProvider.primaryColor.withOpacity(0.3)
-                  : Colors.blue[200],
-              child: Text(
-                sender[0].toUpperCase(),
-                style: TextStyle(
-                  color: themeProvider.isDarkMode ? themeProvider.primaryColor : AppColors.navyBlue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: themeProvider.primaryColor.withOpacity(0.2),
+            child: Text(
+              post['avatarInitial'],
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: themeProvider.primaryColor,
               ),
             ),
-            SizedBox(width: 8),
-          ],
-          Flexible(
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
-              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (!isMe)
-                  Text(
-                    sender,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: themeProvider.textSecondaryColor,
+                Row(
+                  children: [
+                    Text(
+                      post['sender'],
+                      style: TextStyle(fontWeight: FontWeight.bold, color: themeProvider.textColor),
                     ),
-                  ),
-                SizedBox(height: 4),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    gradient: isMe 
-                        ? (themeProvider.isDarkMode
-                            ? LinearGradient(colors: [themeProvider.primaryColor, AppTheme.electricBlue])
-                            : LinearGradient(colors: [themeProvider.primaryColor, Color(0xFF3b82f6)]))
-                        : null,
-                    color: isMe 
-                        ? null 
-                        : (themeProvider.isDarkMode 
-                            ? themeProvider.surfaceColor 
-                            : Colors.grey[200]),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(isMe ? 18 : 4),
-                      topRight: Radius.circular(isMe ? 4 : 18),
-                      bottomLeft: Radius.circular(18),
-                      bottomRight: Radius.circular(18),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${post['handle']} · ${post['time']}',
+                        style: TextStyle(color: themeProvider.textSecondaryColor),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    border: themeProvider.isDarkMode && !isMe
-                        ? Border.all(color: themeProvider.primaryColor.withOpacity(0.3))
-                        : null,
-                  ),
-                  child: Text(
-                    message,
-                    style: TextStyle(
-                      color: isMe 
-                          ? (themeProvider.isDarkMode ? Colors.black : Colors.white)
-                          : themeProvider.textColor,
-                      fontSize: 14,
-                    ),
-                  ),
+                  ],
                 ),
-                SizedBox(height: 4),
-                Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: themeProvider.textSecondaryColor,
+
+                if (post['message'].isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      post['message'],
+                      style: TextStyle(color: themeProvider.textColor, fontSize: 15, height: 1.4),
+                    ),
                   ),
+                const SizedBox(height: 12),
+
+
+                if (imageFile != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: Image.file(
+                      File(imageFile.path),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+
+                if (imageFile != null) const SizedBox(height: 12),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildActionButton(Icons.chat_bubble_outline, 'Reply', themeProvider),
+                    _buildActionButton(Icons.repeat, post['reposts'].toString(), themeProvider),
+                    _buildActionButton(Icons.favorite_border, post['likes'].toString(), themeProvider),
+                    _buildActionButton(Icons.bar_chart, post['views'].toString(), themeProvider),
+                  ],
                 ),
               ],
             ),
           ),
-          if (isMe) ...[
-            SizedBox(width: 8),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: themeProvider.isDarkMode 
-                  ? themeProvider.primaryColor
-                  : AppColors.navyBlue,
-              child: Text(
-                'Y',
-                style: TextStyle(
-                  color: themeProvider.isDarkMode ? Colors.black : Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, String text, ThemeProvider themeProvider) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: themeProvider.textSecondaryColor),
+        const SizedBox(width: 4),
+        if(text != 'Reply')
+          Text(text, style: TextStyle(color: themeProvider.textSecondaryColor, fontSize: 13)),
+      ],
     );
   }
 }

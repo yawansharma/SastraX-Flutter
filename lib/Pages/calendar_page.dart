@@ -211,7 +211,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 const SizedBox(width: 8),
                 Text(
                   'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white70),
                 ),
               ],
             ),

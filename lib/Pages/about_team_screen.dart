@@ -23,7 +23,7 @@ class AboutTeamScreen extends StatelessWidget {
     {
       'name': 'Yashwanth',
       'role': 'Technical Head',
-      'avatar': 'Yash', // This will be displayed as an image
+      'avatar': 'Yash', // This will be displayed as text "Y"
       'color': AppTheme.primaryPurple,
       'description': 'The creative force behind the app.',
       'instagram': 'https://instagram.com/',
@@ -34,6 +34,8 @@ class AboutTeamScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Added these lines to access theme and screen size info
+    final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
     final scale = MediaQuery.of(context).textScaleFactor;
     final avatarSize = min(70.0, size.width * 0.18);
@@ -41,19 +43,9 @@ class AboutTeamScreen extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         backgroundColor: AppTheme.backgroundLight,
+        // The AppBar has been updated as you requested
         appBar: AppBar(
-          title: Text('About Team',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 20 / scale)),
-          backgroundColor: AppTheme.primaryPurple,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => MoreOptionsScreen()),
-            ),
-          ),
+          title: Text('About Team', style: theme.textTheme.titleLarge),
         ),
         body: SingleChildScrollView(
           child: Column(

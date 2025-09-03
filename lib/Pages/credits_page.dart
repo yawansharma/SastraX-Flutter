@@ -53,6 +53,7 @@ class _CreditsScreenState extends State<CreditsScreen>
         {'name': 'Computer Applications', 'credits': 2, 'grade': 'A+', 'score': 95},
       ],
     },
+    // ... other semester data remains the same
     {
       'semester': 3,
       'totalCredits': 26,
@@ -183,26 +184,19 @@ class _CreditsScreenState extends State<CreditsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Check if the current theme is dark
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
+      // KEY CHANGE 1: Dynamic background color
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Credits',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppTheme.primaryPurple,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MoreOptionsScreen())),
-        ),
+        title: Text('Credits', style: theme.textTheme.titleLarge),
       ),
       body: Column(
         children: [
-          // Credits Header
+          // Credits Header (No changes needed here)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -220,9 +214,7 @@ class _CreditsScreenState extends State<CreditsScreen>
                   size: 50,
                   color: Colors.white,
                 ).animate().scale(delay: 200.ms, curve: Curves.elasticOut),
-
                 const SizedBox(height: 15),
-
                 const Text(
                   'Academic Credits',
                   style: TextStyle(
@@ -231,9 +223,7 @@ class _CreditsScreenState extends State<CreditsScreen>
                     color: Colors.white,
                   ),
                 ).animate().slideY(delay: 400.ms, begin: -0.3, end: 0),
-
                 const SizedBox(height: 8),
-
                 Text(
                   'Track your semester-wise progress',
                   style: TextStyle(
@@ -272,6 +262,7 @@ class _CreditsScreenState extends State<CreditsScreen>
   }
 
   Widget _buildCreditsCircleLayout() {
+    // ... no changes in this method
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = math.min(constraints.maxWidth, constraints.maxHeight);
@@ -325,6 +316,7 @@ class _CreditsScreenState extends State<CreditsScreen>
   }
 
   Widget _buildCenterCircle(double radius) {
+    // ... no changes in this method
     final isSelected = _selectedSemester == 0;
 
     return AnimatedBuilder(
@@ -398,6 +390,7 @@ class _CreditsScreenState extends State<CreditsScreen>
   }
 
   Widget _buildSemesterCircle(int semester, double radius) {
+    // ... no changes in this method
     final semesterData = _semesterData[semester - 1];
     final isSelected = _selectedSemester == semester;
     final colors = [
@@ -469,12 +462,17 @@ class _CreditsScreenState extends State<CreditsScreen>
   }
 
   Widget _buildOverallDetails() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // KEY CHANGE 2: Dynamic card background and text colors
+        color: isDarkMode ? Colors.grey[900] : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: isDarkMode ? null : AppTheme.cardShadow,
+        border: isDarkMode ? Border.all(color: AppTheme.primaryPurple.withOpacity(0.3)) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,12 +485,12 @@ class _CreditsScreenState extends State<CreditsScreen>
                 size: 24,
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'Overall Performance',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textDarkBlue,
+                  color: isDarkMode ? Colors.white : AppTheme.textDarkBlue,
                 ),
               ),
             ],
@@ -519,15 +517,19 @@ class _CreditsScreenState extends State<CreditsScreen>
   }
 
   Widget _buildSemesterDetails(int semester) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     final semesterData = _semesterData[semester - 1];
     final subjects = semesterData['subjects'] as List<Map<String, dynamic>>;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // KEY CHANGE 3: Dynamic card background and text colors
+        color: isDarkMode ? Colors.grey[900] : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: isDarkMode ? null : AppTheme.cardShadow,
+        border: isDarkMode ? Border.all(color: AppTheme.primaryPurple.withOpacity(0.3)) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,10 +554,10 @@ class _CreditsScreenState extends State<CreditsScreen>
               const SizedBox(width: 10),
               Text(
                 'Semester $semester Details',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textDarkBlue,
+                  color: isDarkMode ? Colors.white : AppTheme.textDarkBlue,
                 ),
               ),
             ],
@@ -591,7 +593,8 @@ class _CreditsScreenState extends State<CreditsScreen>
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.backgroundLight,
+                    // KEY CHANGE 4: Dynamic subject item background and text colors
+                    color: isDarkMode ? Colors.black.withOpacity(0.5) : AppTheme.backgroundLight,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: _getGradeColor(subject['grade']).withOpacity(0.3),
@@ -606,17 +609,17 @@ class _CreditsScreenState extends State<CreditsScreen>
                           children: [
                             Text(
                               subject['name'],
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: AppTheme.textDarkBlue,
+                                color: isDarkMode ? Colors.white70 : AppTheme.textDarkBlue,
                               ),
                             ),
                             Text(
                               'Credits: ${subject['credits']}',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Colors.grey.shade600,
+                                color: isDarkMode ? Colors.white54 : Colors.grey.shade600,
                               ),
                             ),
                           ],
@@ -658,6 +661,7 @@ class _CreditsScreenState extends State<CreditsScreen>
   }
 
   Widget _buildStatCard(String label, String value, Color color) {
+    // ... no changes in this method
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -691,6 +695,7 @@ class _CreditsScreenState extends State<CreditsScreen>
   }
 
   Color _getGradeColor(String grade) {
+    // ... no changes in this method
     switch (grade) {
       case 'A+':
         return AppTheme.successGreen;

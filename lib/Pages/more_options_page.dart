@@ -1,13 +1,14 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:sastra_x/Pages/home_page.dart';
+import 'package:sastra_x/Pages/home_page.dart'; // Make sure this path is correct
 
-import 'about_team_screen.dart';
-import 'about_team_screen.dart';
-import 'credits_page.dart';
+// Import the dedicated pages for each option.
 import 'SGPA_calculator.dart';
+import 'about_team_screen.dart';
+import 'club_hub.dart';
+import 'credits_page.dart';
 import 'internals_page.dart';
+
 
 class MoreOptionsScreen extends StatelessWidget {
   const MoreOptionsScreen({super.key});
@@ -87,123 +88,64 @@ class MoreOptionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: DraggableScrollableSheet(
-        initialChildSize: 0.85,
-        minChildSize: 0.45,
-        maxChildSize: 0.95,
-        builder: (ctx, scrollCtrl) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            child: CustomScrollView(
-              controller: scrollCtrl,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back, color: Colors.black),
-                              onPressed: () => Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (_) => HomePage(regNo:"" )),
-                              ),
-                            ),
-
-                            Icon(Icons.apps,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 30),
-                            const SizedBox(width: 16),
-                            const Text(
-                              'More Options',
-                              style: TextStyle(
-                                  fontSize: 26, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ).animate().slideY(begin: -0.25, duration: 350.ms),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverGrid(
-                    delegate: SliverChildBuilderDelegate(
-                          (ctx, i) => _OptionCard(
-                        data: _options[i],
-                        onTap: () => _handleTap(context, _options[i]['route']),
-                        index: i,
-                      ),
-                      childCount: _options.length,
-                    ),
-                    gridDelegate:
-                    const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 210,
-                      mainAxisSpacing: 20,
-                      crossAxisSpacing: 20,
-                      childAspectRatio: 0.95,
-                    ),
-                  ),
-                ),
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
-              ],
-            ),
-          );
-        },
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        title: const Text('More Options'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Replace the current screen with the HomePage
+            Navigator.pushReplacement(
+              context,
+              // THIS IS THE FIX: Changed MoreOptionsScreen() to HomePage()
+              MaterialPageRoute(builder: (context) => const HomePage(regNo: "regNo")),
+            );
+          },
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 210,
+            mainAxisSpacing: 20,
+            crossAxisSpacing: 20,
+            childAspectRatio: 0.95,
+          ),
+          itemCount: _options.length,
+          itemBuilder: (ctx, i) => _OptionCard(
+            data: _options[i],
+            onTap: () => _handleTap(context, _options[i]['route'] as String),
+            index: i,
+          ),
+        ),
       ),
     );
   }
 
   void _handleTap(BuildContext ctx, String route) {
-    Navigator.pop(ctx);
     switch (route) {
       case 'internals':
         Navigator.push(ctx, MaterialPageRoute(builder: (_) => InternalsPage()));
         break;
       case 'credits':
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) => const CreditsScreen()));
-        break;
-      case 'about_team':
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) => AboutTeamScreen()));
+        Navigator.push(
+            ctx, MaterialPageRoute(builder: (_) => const CreditsScreen()));
         break;
       case 'sgpa':
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) => const SgpaCalculatorPage()));
+        Navigator.push(
+            ctx, MaterialPageRoute(builder: (_) => const SgpaCalculatorPage()));
         break;
-      case 'transport':
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) => const MoreOptionsScreen()));
+      case 'about_team':
+        Navigator.push(
+            ctx, MaterialPageRoute(builder: (_) => AboutTeamScreen()));
         break;
       case 'clubs':
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) => const MoreOptionsScreen()));
-        break;
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) => InternalsPage()));
-        break;
+        Navigator.push(ctx, MaterialPageRoute(builder: (_) =>  ClubHubPage()));
+
       default:
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${route.replaceAll('_', ' ').toUpperCase()} feature coming soon!',
-            ),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
+        break;
     }
   }
 }
@@ -222,6 +164,7 @@ class _OptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color color = data['color'] as Color;
+    final onBackgroundColor = Theme.of(context).colorScheme.onBackground;
 
     return GestureDetector(
       onTap: onTap,
@@ -265,7 +208,7 @@ class _OptionCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: color,
+                      color: onBackgroundColor,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -274,7 +217,7 @@ class _OptionCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color: onBackgroundColor.withOpacity(0.7),
                     ),
                   ),
                 ],

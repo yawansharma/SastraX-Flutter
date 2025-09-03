@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sastra_x/Pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/theme_model.dart';
 
@@ -86,7 +85,7 @@ class _CalendarPageState extends State<CalendarPage> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return Scaffold(
-          backgroundColor: themeProvider.backgroundColor,
+          backgroundColor: themeProvider.isDarkMode ? themeProvider.backgroundColor : Colors.white,
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -181,8 +180,8 @@ class _CalendarPageState extends State<CalendarPage> {
                 child: Center(
                   child: Text('$dayOffset',
                       style: TextStyle(
-                          fontWeight: FontWeight.w600, color: isSel ? Color(
-                          0xff070707) : theme.textColor)),
+                          fontWeight: FontWeight.w600,
+                          color: isSel ? const Color(0xff070707) : theme.textColor)),
                 ),
               ),
             );
@@ -290,7 +289,7 @@ class _CalendarPageState extends State<CalendarPage> {
   );
 
   BoxDecoration _boxDecoration(ThemeProvider t) => BoxDecoration(
-    color: t.cardBackgroundColor,
+    color: t.isDarkMode ? t.cardBackgroundColor : Colors.white,
     borderRadius: BorderRadius.circular(20),
     boxShadow: [
       BoxShadow(
@@ -308,7 +307,7 @@ class _CalendarPageState extends State<CalendarPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: theme.cardBackgroundColor,
+      backgroundColor: theme.isDarkMode ? theme.cardBackgroundColor : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

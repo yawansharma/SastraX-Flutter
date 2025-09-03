@@ -10,8 +10,8 @@ class AppTheme {
   static const Color darkSurface = Color(0xFF1A1A1A);
 
   // Light theme colors
-  static const Color lightBackground = Color(0xFF87CEEB);
-  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightBackground = Color(0xFFFFFFFF);
+  static const Color lightSurface = Color(0xFFF8F9FA);
   static const Color primaryBlue = Color(0xFF1e3a8a);
   static const Color navyBlue = Color(0xFF1e3a8a);
   static const Color text = Color(0xffcf12e0);
@@ -180,17 +180,31 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get isDarkMode => _isDarkMode;
 
-  ThemeData get currentTheme => _isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme;
+  ThemeData get currentTheme =>
+      _isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme;
 
   // Color getters for easy access
-  Color get backgroundColor => _isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground;
-  Color get surfaceColor => _isDarkMode ? AppTheme.darkSurface : AppTheme.lightSurface;
-  Color get primaryColor => _isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue;
-  Color get cardBackgroundColor => _isDarkMode ? AppTheme.darkSurface : Colors.white;
-  Color get appBarBackgroundColor => _isDarkMode ? AppTheme.darkBackground : AppTheme.primaryBlue;
-  Color get bottomNavBackgroundColor => _isDarkMode ? AppTheme.darkSurface : Colors.white;
+  Color get backgroundColor =>
+      _isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground;
+  Color get surfaceColor =>
+      _isDarkMode ? AppTheme.darkSurface : AppTheme.lightSurface;
+
+  Color get primaryColor =>
+      _isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue;
+
+  /// ✅ Fixed here: use soft grey for cards in light mode
+  Color get cardBackgroundColor =>
+      _isDarkMode ? AppTheme.darkSurface : AppTheme.backgroundLight;
+
+  Color get appBarBackgroundColor =>
+      _isDarkMode ? AppTheme.darkBackground : AppTheme.primaryBlue;
+
+  Color get bottomNavBackgroundColor =>
+      _isDarkMode ? AppTheme.darkSurface : Colors.white;
+
   Color get textColor => _isDarkMode ? Colors.white : Colors.black87;
-  Color get textSecondaryColor => _isDarkMode ? Colors.white70 : Colors.grey[600]!;
+  Color get textSecondaryColor =>
+      _isDarkMode ? Colors.white70 : Colors.grey[600]!;
   Color get iconColor => _isDarkMode ? Colors.grey : Colors.grey[600]!;
 
   void toggleTheme() async {

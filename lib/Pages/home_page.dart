@@ -47,11 +47,12 @@ class _HomePageState extends State<HomePage> {
       builder: (_, theme, __) => Scaffold(
         backgroundColor: theme.isDarkMode
             ? AppTheme.darkBackground
-            : AppTheme.lightBackground,
+            : Colors.white,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leading: Image.asset('assets/icon/LogoIcon.png'),
-          title: const Text('SastraX', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('SastraX',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           centerTitle: true,
           backgroundColor:
           theme.isDarkMode ? AppTheme.darkBackground : AppTheme.primaryBlue,
@@ -71,16 +72,19 @@ class _HomePageState extends State<HomePage> {
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
           type: BottomNavigationBarType.fixed,
-          backgroundColor: theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
+          backgroundColor:
+          theme.isDarkMode ? AppTheme.darkSurface : Colors.white,
           selectedItemColor:
           theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue,
           unselectedItemColor: Colors.grey,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendar'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_today), label: 'Calendar'),
             BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Community'),
             BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Mess'),
-            BottomNavigationBarItem(icon: Icon(Icons.more_horiz_outlined), label: 'More'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.more_horiz_outlined), label: 'More'),
           ],
         ),
       ),
@@ -113,7 +117,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     _fetchAttendance();
     _fetchCGPA();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 3));
   }
 
   @override
@@ -162,12 +167,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _fetchAttendance() async {
-    // Check if data is already loaded to avoid refetching.
     if (attendancePercent >= 0 && totalClasses > 0) return;
 
     try {
       final res = await http.post(
-        Uri.parse('https://computing-sticky-rolling-mild.trycloudflare.com/attendance'),
+        Uri.parse(
+            'https://computing-sticky-rolling-mild.trycloudflare.com/attendance'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
       );
@@ -177,10 +182,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         final raw = data['attendanceHTML'] ?? data['attendance'] ?? '0%';
         final percentMatch = RegExp(r'(\d+(?:\.\d+)?)\s*%').firstMatch(raw);
-        final pairMatch = RegExp(r'\(\s*(\d+)\s*/\s*(\d+)\s*\)').firstMatch(raw);
+        final pairMatch =
+        RegExp(r'\(\s*(\d+)\s*/\s*(\d+)\s*\)').firstMatch(raw);
 
         setState(() {
-          attendancePercent = double.tryParse(percentMatch?[1] ?? '0') ?? 0.0;
+          attendancePercent =
+              double.tryParse(percentMatch?[1] ?? '0') ?? 0.0;
           attendedClasses = int.tryParse(pairMatch?[1] ?? '0') ?? 0;
           totalClasses = int.tryParse(pairMatch?[2] ?? '0') ?? 0;
         });
@@ -193,7 +200,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _fetchCGPA() async {
-    // Check if CGPA is already loaded.
     if (cgpa != null && cgpa != 'N/A') {
       setState(() => isCgpaLoading = false);
       return;
@@ -201,7 +207,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final res = await http.post(
-        Uri.parse('https://bulletin-screenshot-islamic-lead.trycloudflare.com/cgpa'),
+        Uri.parse(
+            'https://bulletin-screenshot-islamic-lead.trycloudflare.com/cgpa'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false}),
       );
@@ -235,17 +242,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Stack(
       children: [
-        CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProfilePage(regNo: widget.regNo)),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Profile Section
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => ProfilePage(regNo: widget.regNo)),
+                  ),
                   child: NeonContainer(
+                    borderColor: theme.isDarkMode
+                        ? AppTheme.neonBlue
+                        : AppTheme.primaryBlue,
                     child: Row(
                       children: [
                         CircleAvatar(
@@ -254,7 +266,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ? AppTheme.neonBlue
                               : AppTheme.primaryBlue,
                           child: Icon(Icons.person,
-                              color: theme.isDarkMode ? Colors.black : Colors.white),
+                              color: theme.isDarkMode
+                                  ? Colors.black
+                                  : Colors.white),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -262,19 +276,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (isBirthday)
-                                MediaQuery.withClampedTextScaling(
-                                  minScaleFactor: 1.0,
-                                  maxScaleFactor: 1.0,
-                                  child: const FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      '🎉 Happy Birthday! 🎉',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.amber,
-                                      ),
-                                    ),
+                                const Text(
+                                  '🎉 Happy Birthday! 🎉',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.amber,
                                   ),
                                 )
                               else
@@ -300,19 +307,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverToBoxAdapter(
-                child: NeonContainer(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                const SizedBox(height: 16),
+
+                // Attendance Chart
+                NeonContainer(
+                  borderColor: theme.isDarkMode
+                      ? AppTheme.neonBlue
+                      : AppTheme.primaryBlue,
+                  padding:
+                  const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                   child: attendancePercent < 0
                       ? const Center(child: CircularProgressIndicator())
                       : GestureDetector(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => SubjectWiseAttendancePage()),
+                      MaterialPageRoute(
+                          builder: (_) => SubjectWiseAttendancePage()),
                     ),
                     child: AttendancePieChart(
                       attendancePercentage: attendancePercent,
@@ -322,33 +332,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                delegate: SliverChildListDelegate.fixed([
-                  _buildAssignmentsTile(theme),
-                  _buildGpaFeeTile(theme),
-                ]),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 210,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.0,
+                const SizedBox(height: 16),
+
+                // Assignments and GPA/Fee Dues containers
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildAssignmentsTile(theme),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildGpaFeeTile(theme),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-              sliver: SliverToBoxAdapter(
-                child: NeonContainer(
+                const SizedBox(height: 16),
+
+                // Timetable
+                NeonContainer(
+                  borderColor: theme.isDarkMode
+                      ? AppTheme.neonBlue
+                      : AppTheme.primaryBlue,
                   padding: EdgeInsets.zero,
                   child: TimetableWidget(regNo: widget.regNo),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
         if (isBirthday)
           Positioned.fill(
@@ -356,7 +366,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               alignment: Alignment.topCenter,
               child: ConfettiWidget(
                 confettiController: _confettiController,
-                blastDirectionality: BlastDirectionality.explosive,
+                blastDirectionality:
+                BlastDirectionality.explosive,
                 emissionFrequency: 0.05,
                 numberOfParticles: 30,
                 maxBlastForce: 25,
@@ -371,58 +382,85 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildAssignmentsTile(ThemeProvider theme) {
-    return NeonContainer(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.assignment_turned_in,
-              size: 32,
-              color: theme.isDarkMode ? AppTheme.neonBlue : AppTheme.primaryBlue),
-          const SizedBox(height: 6),
-          const Text('Assignments', style: TextStyle(fontWeight: FontWeight.bold)),
-          Text('12 Pending',
-              style: TextStyle(
-                  fontSize: 12,
-                  color: theme.isDarkMode ? Colors.white70 : Colors.grey[600])),
-        ],
+    return SizedBox(
+      height: 180, // Increased height for a larger, uniform container
+      child: NeonContainer(
+        borderColor: theme.isDarkMode
+            ? AppTheme.neonBlue
+            : AppTheme.primaryBlue,
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.assignment_turned_in,
+                size: 40, // Slightly larger icon
+                color: theme.isDarkMode
+                    ? AppTheme.neonBlue
+                    : AppTheme.primaryBlue),
+            const SizedBox(height: 10),
+            const Text('Assignments',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('12 Pending',
+                style: TextStyle(
+                    fontSize: 14,
+                    color: theme.isDarkMode
+                        ? Colors.white70
+                        : Colors.grey[600])),
+          ],
+        ),
       ),
     );
   }
 
+  // home_page.dart
   Widget _buildGpaFeeTile(ThemeProvider theme) {
     return GestureDetector(
       onTap: () => setState(() => showFeeDue = !showFeeDue),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
-        child: showFeeDue
-            ? const FeeDueCard(key: ValueKey('fee'), feeDue: 12000)
-            : NeonContainer(
-          key: const ValueKey('gpa'),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.grade,
-                  size: 24,
-                  color: theme.isDarkMode
-                      ? AppTheme.electricBlue
-                      : Colors.orange),
-              const SizedBox(height: 6),
-              const Text('GPA', style: TextStyle(fontWeight: FontWeight.bold)),
-              isCgpaLoading
-                  ? const SizedBox(
-                height: 16,
-                width: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-                  : Text('$cgpa / 10',
+        child: SizedBox(
+          height: 180, // Use the same height as the Assignments container
+          width: 180,  // Use the same width as the Assignments container
+          key: ValueKey(showFeeDue), // Important for AnimatedSwitcher to identify children
+          child: showFeeDue
+              ? FeeDueCard(
+            key: ValueKey('fee'),
+            feeDue: 12000, // Example fee, replace with a dynamic value if available
+          )
+              : NeonContainer(
+            key: ValueKey('gpa'),
+            borderColor: theme.isDarkMode
+                ? AppTheme.neonBlue
+                : AppTheme.primaryBlue,
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.grade,
+                  size: 40,
+                  color: theme.isDarkMode ? AppTheme.electricBlue : Colors.orange,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'GPA',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                isCgpaLoading
+                    ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                    : Text(
+                  '$cgpa / 10',
                   style: TextStyle(
-                      fontSize: 12,
-                      color: theme.isDarkMode
-                          ? Colors.white70
-                          : Colors.grey[600])),
-            ],
+                    fontSize: 14,
+                    color: theme.isDarkMode ? Colors.white70 : Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

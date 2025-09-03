@@ -8,6 +8,8 @@ class NeonContainer extends StatelessWidget {
   final double? width;
   final double? height;
   final Color? color;
+  final Color borderColor;
+  final List<BoxShadow>? boxShadow;
 
   const NeonContainer({
     Key? key,
@@ -16,6 +18,8 @@ class NeonContainer extends StatelessWidget {
     this.width,
     this.height,
     this.color,
+    required this.borderColor,
+    this.boxShadow, // 💡 And in the constructor.
   }) : super(key: key);
 
   @override
@@ -25,38 +29,37 @@ class NeonContainer extends StatelessWidget {
         return Container(
           width: width,
           height: height,
-          padding: padding ?? EdgeInsets.all(16),
+          padding: padding ?? const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color ?? (themeProvider.isDarkMode
-                ? AppTheme.darkSurface
-                : Colors.white),
+            color: color ??
+                (themeProvider.isDarkMode
+                    ? AppTheme.darkSurface
+                    : Colors.white),
             borderRadius: BorderRadius.circular(15),
-            border: themeProvider.isDarkMode
-                ? Border.all(
-              color: AppTheme.neonBlue.withOpacity(0.3),
-              width: 1,
-            )
-                : null,
-            boxShadow: themeProvider.isDarkMode
+            border: Border.all(
+              color: borderColor.withOpacity(themeProvider.isDarkMode ? 0.6 : 0.3),
+              width: 1.5,
+            ),
+            boxShadow: boxShadow ?? (themeProvider.isDarkMode
                 ? [
               BoxShadow(
-                color: AppTheme.neonBlue.withOpacity(0.2),
-                blurRadius: 10,
-                spreadRadius: 1,
+                color: borderColor.withOpacity(0.6),
+                blurRadius: 12,
+                spreadRadius: 2,
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 5,
-                offset: Offset(0, 2),
+                color: Colors.black.withOpacity(0.4),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ]
                 : [
               BoxShadow(
                 color: Colors.black12,
                 blurRadius: 8,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
-            ],
+            ]),
           ),
           child: child,
         );

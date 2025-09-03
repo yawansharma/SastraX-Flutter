@@ -13,26 +13,34 @@ class FeeDueCard extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
             color: themeProvider.cardBackgroundColor,
             borderRadius: BorderRadius.circular(20),
-            border: themeProvider.isDarkMode
-                ? Border.all(color: AppTheme.neonBlue.withOpacity(0.3))
-                : null,
+            border: Border.all(
+              color: themeProvider.isDarkMode
+                  ? AppTheme.neonBlue.withOpacity(0.6)
+                  : AppTheme.primaryBlue.withOpacity(0.3),
+              width: 1.5,
+            ),
             boxShadow: themeProvider.isDarkMode
                 ? [
               BoxShadow(
-                color: AppTheme.neonBlue.withOpacity(0.2),
-                blurRadius: 15,
+                color: AppTheme.neonBlue.withOpacity(0.6),
+                blurRadius: 12,
                 spreadRadius: 2,
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.4),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ]
                 : [
               BoxShadow(
                 color: Colors.black12,
-                blurRadius: 10,
-                offset: Offset(0, 5),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -40,14 +48,14 @@ class FeeDueCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     colors: feeDue > 0
                         ? themeProvider.isDarkMode
-                        ? [Color(0xFFFF6B6B), Color(0xFFFF8E8E)]
+                        ? [const Color(0xFFFF6B6B), const Color(0xFFFF8E8E)]
                         : [Colors.red[400]!, Colors.red[600]!]
                         : themeProvider.isDarkMode
                         ? [AppTheme.neonBlue, AppTheme.electricBlue]
@@ -57,7 +65,7 @@ class FeeDueCard extends StatelessWidget {
                       ? [
                     BoxShadow(
                       color: (feeDue > 0
-                          ? Color(0xFFFF6B6B)
+                          ? const Color(0xFFFF6B6B)
                           : AppTheme.neonBlue)
                           .withOpacity(0.5),
                       blurRadius: 15,
@@ -68,39 +76,39 @@ class FeeDueCard extends StatelessWidget {
                 ),
                 child: Icon(
                   Icons.account_balance_wallet,
-                  size: 30,
+                  size: 25,
                   color: themeProvider.isDarkMode ? Colors.black : Colors.white,
                 ),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 12),
               Text(
                 'Fee Status',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
+                  // Now using the primary color
                   color: themeProvider.primaryColor,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 feeDue > 0 ? '₹${feeDue.toInt()}' : 'Paid',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: feeDue > 0
                       ? (themeProvider.isDarkMode
-                      ? Color(0xFFFF6B6B)
+                      ? const Color(0xFFFF6B6B)
                       : Colors.red)
-                      : (themeProvider.isDarkMode
-                      ? AppTheme.neonBlue
-                      : Colors.green),
+                  // Now using the primary color
+                      : themeProvider.primaryColor,
                 ),
               ),
               if (feeDue > 0)
                 Container(
-                  margin: const EdgeInsets.only(top: 10),
+                  margin: const EdgeInsets.only(top: 8),
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: themeProvider.isDarkMode
                         ? const Color(0xFFFF6B6B).withOpacity(0.2)
@@ -115,7 +123,7 @@ class FeeDueCard extends StatelessWidget {
                   child: Text(
                     'Due Soon',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 9,
                       color: themeProvider.isDarkMode
                           ? const Color(0xFFFF6B6B)
                           : Colors.red,

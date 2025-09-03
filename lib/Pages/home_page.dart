@@ -167,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final res = await http.post(
-        Uri.parse('https://bulletin-screenshot-islamic-lead.trycloudflare.com/attendance'),
+        Uri.parse('https://computing-sticky-rolling-mild.trycloudflare.com/attendance'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': false, 'regNo': widget.regNo}),
       );

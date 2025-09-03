@@ -212,7 +212,7 @@ class _LoginPageState extends State<LoginPage> {
   String? passwordErrorMessage;
   String? captchaErrorMessage;
 
-  String captchaBaseUrl = 'https://withdrawal-northern-herb-undo.trycloudflare.com';
+  String captchaBaseUrl = 'https://computing-sticky-rolling-mild.trycloudflare.com/';
   late String captchaUrl;
 
   @override

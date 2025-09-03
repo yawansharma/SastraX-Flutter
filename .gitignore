@@ -30,13 +30,10 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
-
 # Symbolication related
 app.*.symbols
-
 # Obfuscation related
 app.*.map.json
-
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
@@ -44,9 +41,6 @@ app.*.map.json
 # Firebase config files
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
-
 # Custom Dart file to ignore
 lib/more_options.dart
 lib/UI/more_options.dart
-
-

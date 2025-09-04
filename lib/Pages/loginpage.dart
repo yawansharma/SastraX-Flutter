@@ -10,6 +10,9 @@ import 'package:provider/provider.dart';
 import '../models/theme_model.dart';
 
 class LoginPage extends StatefulWidget {
+   String backendUrl;
+    LoginPage({super.key, required this.backendUrl});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -23,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   String? passwordErrorMessage;
   String? captchaErrorMessage;
 
+//this isnt required anymore, can dlt
   String captchaBaseUrl = 'https://computing-sticky-rolling-mild.trycloudflare.com';
   late String captchaUrl;
 
@@ -52,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _refreshCaptcha() {
     setState(() {
-      captchaUrl = '$captchaBaseUrl/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+      captchaUrl = '${widget.backendUrl}/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
     });
   }
 
@@ -70,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('$captchaBaseUrl/login'),
+        Uri.parse('${widget.backendUrl}/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'regno': userController.text.trim(),
@@ -83,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pop(context); // Close dialog
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => HomePage(regNo: userController.text)),
+          MaterialPageRoute(builder: (_) => HomePage(regNo: userController.text, backendUrl: widget.backendUrl,)),
         );
       } else {
         final result = jsonDecode(response.body);
@@ -180,7 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                                 onPressed: () {
                                   captchaController.clear();
                                   setDialogState(() {
-                                    captchaUrl = '$captchaBaseUrl/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
+                                    captchaUrl = '${widget.backendUrl}/captcha?ts=${DateTime.now().millisecondsSinceEpoch}';
                                   });
                                 },
                               ),
@@ -292,7 +296,7 @@ class _LoginPageState extends State<LoginPage> {
               child: FloatingActionButton(
                 onPressed: () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => HomePage(regNo: userController.text)));
+                      MaterialPageRoute(builder: (context) => HomePage(regNo: userController.text, backendUrl: widget.backendUrl,)));
                 },
                 mini: true,
                 child: const Icon(Icons.arrow_forward),

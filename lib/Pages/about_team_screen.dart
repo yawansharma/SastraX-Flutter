@@ -7,7 +7,9 @@ import '../Models/theme_model.dart';
 import 'more_options_page.dart';
 
 class AboutTeamScreen extends StatelessWidget {
-  AboutTeamScreen({super.key});
+  String backendUrl;
+
+  AboutTeamScreen({super.key, required this.backendUrl});
 
   final List<Map<String, dynamic>> _teamMembers = const [
     {

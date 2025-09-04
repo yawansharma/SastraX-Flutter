@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class SubjectWiseAttendancePage extends StatelessWidget {
+  String backendUrl;
+  SubjectWiseAttendancePage({super.key, required this.backendUrl});
+  
   final List<Map<String, dynamic>> subjects = [
     {'name': 'Mathematics', 'percentage': 85},
     {'name': 'Physics', 'percentage': 85},

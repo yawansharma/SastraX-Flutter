@@ -19,7 +19,8 @@ import 'more_options_page.dart';
 
 class HomePage extends StatefulWidget {
   final String regNo;
-  const HomePage({super.key, required this.regNo});
+  final String backendUrl;
+  const HomePage({super.key, required this.regNo, required this.backendUrl});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -33,11 +34,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _pages = [
-      DashboardScreen(regNo: widget.regNo),
-      CalendarPage(regNo: widget.regNo),
-      CommunityPage(),
-      MessMenuPage(),
-      const MoreOptionsScreen(),
+      DashboardScreen(regNo: widget.regNo, backendUrl: widget.backendUrl,),
+      CalendarPage(regNo: widget.regNo, backendUrl: widget.backendUrl,),
+      CommunityPage(backendUrl: widget.backendUrl,),
+      MessMenuPage(backendUrl: widget.backendUrl,),
+       MoreOptionsScreen(backendUrl: widget.backendUrl,),
     ];
   }
 
@@ -94,7 +95,8 @@ class _HomePageState extends State<HomePage> {
 
 class DashboardScreen extends StatefulWidget {
   final String regNo;
-  const DashboardScreen({super.key, required this.regNo});
+  String backendUrl;
+   DashboardScreen({super.key, required this.regNo, required this.backendUrl});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -252,7 +254,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => ProfilePage(regNo: widget.regNo)),
+                        builder: (_) => ProfilePage(regNo: widget.regNo, backendUrl: widget.backendUrl,)),
                   ),
                   child: NeonContainer(
                     borderColor: theme.isDarkMode
@@ -322,7 +324,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => SubjectWiseAttendancePage()),
+                          builder: (_) => SubjectWiseAttendancePage(backendUrl: widget.backendUrl,)),
                     ),
                     child: AttendancePieChart(
                       attendancePercentage: attendancePercent,

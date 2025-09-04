@@ -7,7 +7,8 @@ import 'more_options_page.dart';
 
 
 class CreditsScreen extends StatefulWidget {
-  const CreditsScreen({super.key});
+  String backendUrl;
+  CreditsScreen({super.key, required this.backendUrl});
 
   @override
   State<CreditsScreen> createState() => _CreditsScreenState();

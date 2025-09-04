@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import '../models/theme_model.dart';
 
 class CommunityPage extends StatefulWidget {
-  const CommunityPage({super.key});
+  String backendUrl;
+  CommunityPage({super.key, required this.backendUrl});
 
   @override
   _CommunityPageState createState() => _CommunityPageState();

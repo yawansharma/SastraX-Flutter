@@ -11,7 +11,9 @@ import 'internals_page.dart';
 
 
 class MoreOptionsScreen extends StatelessWidget {
-  const MoreOptionsScreen({super.key});
+  String backendUrl;
+
+   MoreOptionsScreen({super.key, required this.backendUrl});
 
   static const List<Map<String, dynamic>> _options = [
     {
@@ -99,7 +101,7 @@ class MoreOptionsScreen extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               // THIS IS THE FIX: Changed MoreOptionsScreen() to HomePage()
-              MaterialPageRoute(builder: (context) => const HomePage(regNo: "regNo")),
+              MaterialPageRoute(builder: (context) =>  HomePage(regNo: "regNo", backendUrl: backendUrl,)),
             );
           },
         ),
@@ -127,22 +129,22 @@ class MoreOptionsScreen extends StatelessWidget {
   void _handleTap(BuildContext ctx, String route) {
     switch (route) {
       case 'internals':
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) => InternalsPage()));
+        Navigator.push(ctx, MaterialPageRoute(builder: (_) => InternalsPage(backendUrl: backendUrl,)));
         break;
       case 'credits':
         Navigator.push(
-            ctx, MaterialPageRoute(builder: (_) => const CreditsScreen()));
+            ctx, MaterialPageRoute(builder: (_) => CreditsScreen(backendUrl: backendUrl,)));
         break;
       case 'sgpa':
         Navigator.push(
-            ctx, MaterialPageRoute(builder: (_) => const SgpaCalculatorPage()));
+            ctx, MaterialPageRoute(builder: (_) =>  SgpaCalculatorPage(backendUrl: backendUrl,)));
         break;
       case 'about_team':
         Navigator.push(
-            ctx, MaterialPageRoute(builder: (_) => AboutTeamScreen()));
+            ctx, MaterialPageRoute(builder: (_) => AboutTeamScreen(backendUrl: backendUrl,)));
         break;
       case 'clubs':
-        Navigator.push(ctx, MaterialPageRoute(builder: (_) =>  ClubHubPage()));
+        Navigator.push(ctx, MaterialPageRoute(builder: (_) =>  ClubHubPage(backendUrl: backendUrl,)));
 
       default:
         break;

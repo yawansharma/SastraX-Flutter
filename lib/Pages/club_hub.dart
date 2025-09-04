@@ -5,7 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/theme_model.dart'; // ✅ Import ThemeProvider
 
 class ClubHubPage extends StatelessWidget {
-  const ClubHubPage({super.key});
+  String backendUrl;
+  ClubHubPage({super.key, required this.backendUrl});
 
   // Example clubs data
   final List<Map<String, String>> clubs = const [

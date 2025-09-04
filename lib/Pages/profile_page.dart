@@ -10,7 +10,8 @@ import 'loginpage.dart';
 
 class ProfilePage extends StatefulWidget {
   final String regNo;
-  const ProfilePage({super.key, required this.regNo});
+  String backendUrl;
+   ProfilePage({super.key, required this.regNo, required this.backendUrl});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -146,7 +147,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ElevatedButton.icon(
                               onPressed: () {
                                 Navigator.pushReplacement(
-                                    context, MaterialPageRoute(builder: (context) => LoginPage()));
+                                    context, MaterialPageRoute(builder: (context) => LoginPage(backendUrl: widget.backendUrl,)));
                               },
                               icon: const Icon(Icons.logout, color: Colors.white),
                               label: const Text('Log Out', style: TextStyle(color: Colors.white)),

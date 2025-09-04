@@ -8,7 +8,7 @@ import 'package:sastra_x/services/notification_service.dart';
 import 'Pages/loginpage.dart';
 import 'firebase_options.dart';
 import 'models/theme_model.dart';
-import 'pages/home_page.dart';
+
 import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
@@ -18,6 +18,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+   String backendUrl = "test.sastrax.in";
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'SASTRAX Student App',
             theme: themeProvider.currentTheme,
-            home: HomePage(regNo: '127014015'),
+            home:  ,
             debugShowCheckedModeBanner: false,
           );
         },

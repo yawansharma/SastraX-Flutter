@@ -6,7 +6,8 @@ import '../models/theme_model.dart';
 
 class CalendarPage extends StatefulWidget {
   final String regNo;
-  const CalendarPage({required this.regNo, super.key});
+  String backendUrl;
+   CalendarPage({required this.regNo, super.key, required this.backendUrl});
 
   @override
   _CalendarPageState createState() => _CalendarPageState();

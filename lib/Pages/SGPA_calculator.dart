@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class SgpaCalculatorPage extends StatefulWidget {
-  const SgpaCalculatorPage({super.key});
+  String backendUrl;
+   SgpaCalculatorPage({super.key, required this.backendUrl});
 
   @override
   State<SgpaCalculatorPage> createState() => _SgpaCalculatorPageState();

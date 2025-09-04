@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../models/theme_model.dart';
 
 class MessMenuPage extends StatefulWidget {
+  String backendUrl;
+  MessMenuPage({super.key, required this.backendUrl});
   @override
   State<MessMenuPage> createState() => _MessMenuPageState();
 }
